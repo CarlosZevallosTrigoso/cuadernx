@@ -144,6 +144,7 @@
   }
   .media-l{color:var(--ink-dim); font-size:10px; letter-spacing:.1em; text-transform:uppercase; margin-bottom:4px}
   audio{width:100%}
+  #f-vid-video{width:100%; max-height:40vh; border:1px solid var(--line); border-radius:2px; background:#000; display:block}
   #f-nota{min-height:130px}
   #f-guardado{color:var(--ink-dim); font-size:10px; text-align:right; min-height:14px; margin-top:2px}
   #f-recientes .chip{opacity:.75}
@@ -204,9 +205,16 @@
           <input type="checkbox" id="t-pos"><span class="tog"></span></label>
         <label class="sw"><span>foto<small>cámara, JPEG en el JSON</small></span>
           <input type="checkbox" id="t-foto"><span class="tog"></span></label>
-        <label class="sw"><span>sonido ambiente<small>clip al capturar</small></span>
-          <input type="checkbox" id="t-audio"><span class="tog"></span></label>
         <div class="inline" style="margin-top:4px">
+          <span style="color:var(--ink-dim);font-size:11px;white-space:nowrap">clip</span>
+          <select id="clip-modo">
+            <option value="ninguno">sin clip</option>
+            <option value="audio">solo audio</option>
+            <option value="video">solo video</option>
+            <option value="videoaudio">video + audio</option>
+          </select>
+        </div>
+        <div class="inline" id="dur-fila" style="margin-top:4px">
           <span style="color:var(--ink-dim);font-size:11px;white-space:nowrap">duración</span>
           <input type="range" id="dur" min="2" max="15" value="5">
           <span class="val"><span id="dur-v">5</span>s</span>
@@ -276,6 +284,10 @@
         <div class="media-l">escuchar el momento</div>
         <audio id="f-amb-audio" controls></audio>
       </div>
+      <div id="f-vid" class="hide">
+        <div class="media-l">ver el momento</div>
+        <video id="f-vid-video" controls playsinline></video>
+      </div>
       <div>
         <textarea id="f-nota" placeholder="nota expandida — descripción densa, contexto, interpretación…"></textarea>
         <div id="f-guardado"></div>
@@ -315,6 +327,7 @@
     <button class="b" id="h-foto">guardar foto original</button>
     <button class="b" id="h-sello">guardar foto+datos (con croquis)</button>
     <button class="b" id="h-mapa">guardar mapa</button>
+    <button class="b" id="h-video">guardar video</button>
     <button class="b" id="h-voz">guardar nota de voz</button>
     <button class="b peligro" id="h-borrar">borrar de memoria</button>
     <button class="b" id="h-cerrar">cerrar</button>
@@ -429,6 +442,7 @@ function extensionDeMime(mime) {
     'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp',
     'audio/mp4': 'm4a', 'audio/aac': 'aac', 'audio/webm': 'weba',
     'audio/ogg': 'ogg', 'audio/wav': 'wav', 'application/json': 'json',
+    'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov',
   };
   return mapa[base] || (base.split('/')[1] || 'bin');
 }
@@ -595,8 +609,9 @@ function mdDeMomento(mo, opts) {
   if (datos.length) { L.push(datos.join(' · ')); L.push(''); }
   if (mo.nota) { L.push(mo.nota); L.push(''); }
   if (mo.media && mo.media.audio) L.push('> sonido ambiente registrado (' + (mo.media.audio.segundos || '?') + ' s) — en el JSON');
+  if (mo.media && mo.media.video) L.push('> video registrado (' + (mo.media.video.segundos || '?') + ' s' + (mo.media.video.conAudio ? ', con audio' : ', sin audio') + ') — en el JSON');
   if (mo.media && mo.media.notaVoz) L.push('> nota de voz adjunta — en el JSON');
-  if (mo.media && (mo.media.audio || mo.media.notaVoz)) L.push('');
+  if (mo.media && (mo.media.audio || mo.media.video || mo.media.notaVoz)) L.push('');
   return L.join('\n');
 }
 
@@ -691,36 +706,49 @@ function etiquetasRecientes(items, max) {
   $('titulo').addEventListener('click', () => location.reload());
 
   // ---------- preferencias (localStorage: configuración, no datos de campo) ----------
-  const PREFS_DEF = { mov:true, pos:true, foto:true, audio:false, dur:5, camara:'environment', pestana:'campo' };
+  const PREFS_DEF = { mov:true, pos:true, foto:true, clip:'ninguno', dur:5, camara:'environment', pestana:'campo' };
   let PREFS = PREFS_DEF;
   try{
     const g = localStorage.getItem('cuadernx-prefs');
-    if(g) PREFS = Object.assign({}, PREFS_DEF, JSON.parse(g));
+    if(g){
+      const o = JSON.parse(g);
+      PREFS = Object.assign({}, PREFS_DEF, o);
+      // migración desde el toggle booleano "audio" a modo de clip
+      if(o.clip === undefined && o.audio) PREFS.clip = 'audio';
+      delete PREFS.audio;
+    }
   }catch(_){ }
   function guardarPrefs(){
     try{ localStorage.setItem('cuadernx-prefs', JSON.stringify(PREFS)); }catch(_){ }
   }
   function volcarPrefsAUI(){
     $('t-mov').checked = PREFS.mov; $('t-pos').checked = PREFS.pos;
-    $('t-foto').checked = PREFS.foto; $('t-audio').checked = PREFS.audio;
+    $('t-foto').checked = PREFS.foto; $('clip-modo').value = PREFS.clip;
     $('dur').value = PREFS.dur; $('dur-v').textContent = PREFS.dur;
     $('camara').value = PREFS.camara;
+    $('dur-fila').classList.toggle('hide', PREFS.clip === 'ninguno');
   }
   function leerPrefsDeUI(){
     PREFS.mov = $('t-mov').checked; PREFS.pos = $('t-pos').checked;
-    PREFS.foto = $('t-foto').checked; PREFS.audio = $('t-audio').checked;
+    PREFS.foto = $('t-foto').checked; PREFS.clip = $('clip-modo').value;
     PREFS.dur = +$('dur').value; PREFS.camara = $('camara').value;
+    $('dur-fila').classList.toggle('hide', PREFS.clip === 'ninguno');
     guardarPrefs();
   }
-  ['t-mov','t-pos','t-audio','dur','camara'].forEach((id) => {
+  // ¿hace falta encender la cámara para previsualizar? (foto o clip de video)
+  function necesitaCamara(){ return PREFS.foto || PREFS.clip === 'video' || PREFS.clip === 'videoaudio'; }
+  ['t-mov','t-pos','camara'].forEach((id) => {
     $(id).addEventListener('change', leerPrefsDeUI);
-    $(id).addEventListener('input', () => { $('dur-v').textContent = $('dur').value; });
   });
-  $('t-foto').addEventListener('change', async () => {
+  $('dur').addEventListener('input', () => { $('dur-v').textContent = $('dur').value; });
+  $('dur').addEventListener('change', leerPrefsDeUI);
+  async function alCambiarMedia(){
     leerPrefsDeUI();
-    if(PREFS.foto) await encenderCamara(); else apagarCamara();
-  });
-  $('camara').addEventListener('change', () => { if(PREFS.foto) encenderCamara(); });
+    if(necesitaCamara()) await encenderCamara(); else apagarCamara();
+  }
+  $('t-foto').addEventListener('change', alCambiarMedia);
+  $('clip-modo').addEventListener('change', alCambiarMedia);
+  $('camara').addEventListener('change', () => { if(necesitaCamara()) encenderCamara(); });
   $('aj-btn').addEventListener('click', () => $('ajustes').classList.toggle('on'));
 
   // ---------- navegación ----------
@@ -730,7 +758,7 @@ function etiquetasRecientes(items, max) {
       $(id).classList.toggle('on', id === 'v-' + v));
     $('nav-campo').classList.toggle('act', v === 'campo' || v === 'confirm');
     $('nav-cuaderno').classList.toggle('act', v === 'cuaderno' || v === 'ficha');
-    if(v === 'campo'){ if(PREFS.foto) encenderCamara(); }
+    if(v === 'campo'){ if(necesitaCamara()) encenderCamara(); }
     else apagarCamara();
     if(v === 'campo' || v === 'cuaderno'){ PREFS.pestana = v; guardarPrefs(); }
   }
@@ -883,6 +911,50 @@ function etiquetasRecientes(items, max) {
       }, 1000);
     });
   }
+  function mimeVideoSoportado(){
+    const tipos = ['video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+    if(typeof MediaRecorder === 'undefined' || !MediaRecorder.isTypeSupported) return '';
+    for(const t of tipos){ if(MediaRecorder.isTypeSupported(t)) return t; }
+    return '';
+  }
+  async function capturarVideo(segundos, conAudio, onTick){
+    // libera la previsualización para no abrir dos streams de cámara a la vez
+    apagarCamara();
+    let stream;
+    try{
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: PREFS.camara, width: { ideal: 1920 }, height: { ideal: 1080 } },
+        audio: !!conAudio,
+      });
+    }catch(err){ return { dato: null, estado: traducirError(err) }; }
+    return new Promise((resolve) => {
+      let rec;
+      const mime = mimeVideoSoportado();
+      try{ rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined); }
+      catch(err){
+        stream.getTracks().forEach(t => t.stop());
+        return resolve({ dato: null, estado: 'MediaRecorder no disponible' });
+      }
+      const chunks = [];
+      rec.ondataavailable = (e) => { if(e.data && e.data.size) chunks.push(e.data); };
+      rec.onstop = () => {
+        stream.getTracks().forEach(t => t.stop());
+        const blob = new Blob(chunks, { type: rec.mimeType || mime || 'video/mp4' });
+        const fr = new FileReader();
+        fr.onload = () => resolve({ dato: fr.result, estado: 'ok', tipo: blob.type, segundos, conAudio: !!conAudio });
+        fr.onerror = () => resolve({ dato: null, estado: 'error al leer blob' });
+        fr.readAsDataURL(blob);
+      };
+      rec.start();
+      let rest = segundos;
+      onTick(rest);
+      const iv = setInterval(() => {
+        rest--;
+        if(rest > 0){ onTick(rest); }
+        else{ clearInterval(iv); if(rec.state !== 'inactive') rec.stop(); }
+      }, 1000);
+    });
+  }
 
   // ---------- captura ----------
   let capturando = false;
@@ -917,15 +989,21 @@ function etiquetasRecientes(items, max) {
       estado.foto = f.estado;
       if(f.dato) media.foto = { dataURL: f.dato, ancho: f.ancho, alto: f.alto, formato: 'image/jpeg' };
     }
+    const clip = PREFS.clip || 'ninguno';
+    const grabaVideo = clip === 'video' || clip === 'videoaudio';
     linea.textContent = 'capturando…';
-    if(PREFS.audio) btn.classList.add('rec');
+    if(clip !== 'ninguno') btn.classList.add('rec');
     const tareas = [];
     tareas.push(PREFS.mov && movOK ? capturarMovimiento(VENTANA_MOV_MS) : Promise.resolve(null));
     tareas.push(PREFS.pos ? capturarPosicion() : Promise.resolve(null));
-    tareas.push(PREFS.audio
-      ? capturarAudio(PREFS.dur, (s) => { linea.textContent = 'grabando audio… ' + s + 's'; })
-      : Promise.resolve(null));
-    const [rMov, rPos, rAudio] = await Promise.all(tareas);
+    if(clip === 'audio'){
+      tareas.push(capturarAudio(PREFS.dur, (s) => { linea.textContent = 'grabando audio… ' + s + 's'; }));
+    }else if(grabaVideo){
+      tareas.push(capturarVideo(PREFS.dur, clip === 'videoaudio', (s) => { linea.textContent = 'grabando video… ' + s + 's'; }));
+    }else{
+      tareas.push(Promise.resolve(null));
+    }
+    const [rMov, rPos, rClip] = await Promise.all(tareas);
     btn.classList.remove('rec');
 
     let movimiento = null, orientacion = null, posicion = null;
@@ -936,9 +1014,14 @@ function etiquetasRecientes(items, max) {
       orientacion = rMov.orientacion;
     }
     if(rPos){ posicion = rPos.dato; estado.posicion = rPos.estado; }
-    if(rAudio){
-      estado.audio = rAudio.estado;
-      if(rAudio.dato) media.audio = { dataURL: rAudio.dato, formato: rAudio.tipo, segundos: rAudio.segundos };
+    if(rClip){
+      if(clip === 'audio'){
+        estado.audio = rClip.estado;
+        if(rClip.dato) media.audio = { dataURL: rClip.dato, formato: rClip.tipo, segundos: rClip.segundos };
+      }else{
+        estado.video = rClip.estado;
+        if(rClip.dato) media.video = { dataURL: rClip.dato, formato: rClip.tipo, segundos: rClip.segundos, conAudio: rClip.conAudio };
+      }
     }
     momento = ensamblarMomento({
       creadoISO: ahora.toISOString(),
@@ -1060,6 +1143,7 @@ function etiquetasRecientes(items, max) {
           tiene: [
             mo.posicion ? 'gps' : null,
             media.foto ? 'foto' : null,
+            media.video ? 'video' : null,
             media.audio ? 'audio' : null,
             media.notaVoz ? 'voz' : null,
             media.croquis ? 'croquis' : null,
@@ -1204,6 +1288,8 @@ function etiquetasRecientes(items, max) {
     if(hayImagen) pintarFotoFicha(mo, $('f-foto'));
     $('f-amb').classList.toggle('hide', !media.audio);
     if(media.audio) $('f-amb-audio').src = media.audio.dataURL;
+    $('f-vid').classList.toggle('hide', !media.video);
+    if(media.video) $('f-vid-video').src = media.video.dataURL; else $('f-vid-video').removeAttribute('src');
     $('f-nota').value = mo.nota || '';
     $('f-guardado').textContent = '';
     fichaTags = (mo.etiquetas || []).slice();
@@ -1233,6 +1319,7 @@ function etiquetasRecientes(items, max) {
     }
     const media = mo.media || {};
     if(media.foto && media.foto.ancho) filas.push(['foto', media.foto.ancho + '×' + media.foto.alto]);
+    if(media.video) filas.push(['video', (media.video.segundos || '?') + ' s' + (media.video.conAudio ? ' · con audio' : ' · sin audio')]);
     const est = mo.estado || {};
     for(const k of Object.keys(est)){
       const ok = est[k] === 'ok';
@@ -1516,6 +1603,7 @@ function etiquetasRecientes(items, max) {
     $('h-foto').classList.toggle('hide', !media.foto);
     $('h-sello').classList.toggle('hide', !media.foto);
     $('h-mapa').classList.toggle('hide', !momento.posicion);
+    $('h-video').classList.toggle('hide', !media.video);
     $('h-voz').classList.toggle('hide', !media.notaVoz);
     $('h-borrar').classList.toggle('hide', !momento._id);
     $('hoja').classList.add('on'); $('hoja-fondo').classList.add('on');
@@ -1553,6 +1641,13 @@ function etiquetasRecientes(items, max) {
     if(!v) return;
     const base = nombreArchivo(fechaDe(momento)).replace(/\.json$/, '');
     bajarBlob(blobDeDataURL(v.dataURL), base + '_voz.' + extensionDeMime(v.formato));
+  });
+  $('h-video').addEventListener('click', () => {
+    cerrarHoja();
+    const v = momento.media && momento.media.video;
+    if(!v) return;
+    const base = nombreArchivo(fechaDe(momento)).replace(/\.json$/, '');
+    bajarBlob(blobDeDataURL(v.dataURL), base + '_video.' + extensionDeMime(v.formato));
   });
   $('h-borrar').addEventListener('click', async () => {
     if(!momento || !momento._id) return;
