@@ -138,6 +138,7 @@
   #f-top{display:flex; align-items:center; gap:10px; padding:12px 0 0}
   #f-top .cuando{color:var(--ink-dim); font-size:11px; font-variant-numeric:tabular-nums}
   #f-foto{width:100%; border:1px solid var(--line); border-radius:2px; display:block; cursor:pointer}
+  #f-mapa{width:100%; border:1px solid var(--line); border-radius:2px; display:block; cursor:pointer}
   #f-foto-vacia{
     border:1px dashed var(--line); border-radius:2px; padding:22px; text-align:center;
     color:var(--ink-dim); cursor:pointer; font-size:11px;
@@ -287,6 +288,11 @@
       <div id="f-vid" class="hide">
         <div class="media-l">ver el momento</div>
         <video id="f-vid-video" controls playsinline></video>
+      </div>
+      <button class="b hide" id="f-traer-mapa">traer mapa de la posición</button>
+      <div id="f-mapa-wrap" class="hide">
+        <div class="media-l">mapa — tocar para anotar</div>
+        <img id="f-mapa" alt="Mapa del momento — tocar para anotar">
       </div>
       <div>
         <textarea id="f-nota" placeholder="nota expandida — descripción densa, contexto, interpretación…"></textarea>
@@ -546,6 +552,15 @@ function aplicarEdicion(mo, cambios, isoAhora) {
       if (!Object.keys(out.media).length) delete out.media;
     }
   }
+  if ('mapa' in cambios) {
+    if (cambios.mapa) {
+      out.media = out.media || {};
+      out.media.mapa = cambios.mapa;
+    } else if (out.media) {
+      delete out.media.mapa;
+      if (!Object.keys(out.media).length) delete out.media;
+    }
+  }
   out.modificado = isoAhora;
   return out;
 }
@@ -596,6 +611,10 @@ function mdDeMomento(mo, opts) {
   }
   if (mo.media && mo.media.foto && !opts.sinFoto) {
     L.push('![foto del momento](' + mo.media.foto.dataURL + ')');
+    L.push('');
+  }
+  if (mo.media && mo.media.mapa && !opts.sinFoto) {
+    L.push('![mapa del momento](' + mo.media.mapa.dataURL + ')');
     L.push('');
   }
   const datos = [];
@@ -671,12 +690,13 @@ async function descifrarRespaldo(obj, frase) {
 }
 
 // ---------- estado derivado: ¿está anotado? ----------
-// anotado = nota expandida (> umbral), o nota de voz, o croquis. Nunca manual.
+// anotado = nota expandida (> umbral), o nota de voz, o croquis (de foto o de mapa). Nunca manual.
 function esAnotado(mo, umbral) {
   umbral = umbral || 80;
   if (mo.nota && mo.nota.length > umbral) return true;
   const m = mo.media || {};
-  return !!(m.notaVoz || m.croquis);
+  const mapaAnotado = !!(m.mapa && m.mapa.trazos && m.mapa.trazos.length);
+  return !!(m.notaVoz || m.croquis || mapaAnotado);
 }
 
 // ---------- etiquetas recientes ----------
@@ -1147,6 +1167,7 @@ function etiquetasRecientes(items, max) {
             media.audio ? 'audio' : null,
             media.notaVoz ? 'voz' : null,
             media.croquis ? 'croquis' : null,
+            media.mapa ? 'mapa' : null,
             mo.nota ? 'nota' : null,
           ].filter(Boolean),
           bytes: JSON.stringify(mo).length,
@@ -1276,6 +1297,22 @@ function etiquetasRecientes(items, max) {
       pintar(1600, 1200, null);
     }
   }
+  function pintarMapaFicha(mo, imgEl){
+    const mapa = (mo.media || {}).mapa;
+    if(!mapa) return;
+    const trazos = mapa.trazos || [];
+    if(!trazos.length){ imgEl.src = mapa.dataURL; return; }
+    const im = new Image();
+    im.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = im.naturalWidth; c.height = im.naturalHeight;
+      const x = c.getContext('2d');
+      x.drawImage(im, 0, 0);
+      dibujarTrazos(x, trazos, c.width, c.height);
+      imgEl.src = c.toDataURL('image/jpeg', 0.9);
+    };
+    im.src = mapa.dataURL;
+  }
   let fichaTags = [];
   function mostrarFicha(mo){
     momento = mo;
@@ -1290,6 +1327,12 @@ function etiquetasRecientes(items, max) {
     if(media.audio) $('f-amb-audio').src = media.audio.dataURL;
     $('f-vid').classList.toggle('hide', !media.video);
     if(media.video) $('f-vid-video').src = media.video.dataURL; else $('f-vid-video').removeAttribute('src');
+    // mapa: si hay posición pero aún no mapa, ofrece traerlo; si ya está, muéstralo (anotable)
+    $('f-traer-mapa').classList.toggle('hide', !(mo.posicion && !media.mapa));
+    $('f-traer-mapa').textContent = 'traer mapa de la posición';
+    $('f-traer-mapa').disabled = false;
+    $('f-mapa-wrap').classList.toggle('hide', !media.mapa);
+    if(media.mapa) pintarMapaFicha(mo, $('f-mapa'));
     $('f-nota').value = mo.nota || '';
     $('f-guardado').textContent = '';
     fichaTags = (mo.etiquetas || []).slice();
@@ -1320,6 +1363,7 @@ function etiquetasRecientes(items, max) {
     const media = mo.media || {};
     if(media.foto && media.foto.ancho) filas.push(['foto', media.foto.ancho + '×' + media.foto.alto]);
     if(media.video) filas.push(['video', (media.video.segundos || '?') + ' s' + (media.video.conAudio ? ' · con audio' : ' · sin audio')]);
+    if(media.mapa) filas.push(['mapa', 'z' + media.mapa.z + ((media.mapa.trazos && media.mapa.trazos.length) ? ' · ' + media.mapa.trazos.length + ' trazos' : '')]);
     const est = mo.estado || {};
     for(const k of Object.keys(est)){
       const ok = est[k] === 'ok';
@@ -1489,10 +1533,11 @@ function etiquetasRecientes(items, max) {
     else{ cqCtx.fillStyle = '#ece6d4'; cqCtx.fillRect(0, 0, w, h); }
     dibujarTrazos(cqCtx, cq.trazos.concat(cq.actual ? [cq.actual] : []), w, h);
   }
-  function cqAbrir(){
+  let cqDestino = 'foto'; // 'foto' | 'mapa'
+  function cqAbrir(destino){
     if(!momento) return;
+    cqDestino = destino || 'foto';
     const media = momento.media || {};
-    cq.trazos = (media.croquis && media.croquis.trazos) ? JSON.parse(JSON.stringify(media.croquis.trazos)) : [];
     cq.actual = null;
     const abrirCon = (w, h) => {
       const maxW = window.innerWidth - 20, maxH = window.innerHeight - 80;
@@ -1501,6 +1546,16 @@ function etiquetasRecientes(items, max) {
       $('croquis-capa').classList.add('on');
       cqRedibujar();
     };
+    if(cqDestino === 'mapa'){
+      if(!media.mapa) return;
+      cq.base = 'mapa';
+      cq.trazos = media.mapa.trazos ? JSON.parse(JSON.stringify(media.mapa.trazos)) : [];
+      const im = new Image();
+      im.onload = () => { cq.fondo = im; abrirCon(im.naturalWidth, im.naturalHeight); };
+      im.src = media.mapa.dataURL;
+      return;
+    }
+    cq.trazos = (media.croquis && media.croquis.trazos) ? JSON.parse(JSON.stringify(media.croquis.trazos)) : [];
     if(media.foto){
       cq.base = 'foto';
       const im = new Image();
@@ -1511,8 +1566,9 @@ function etiquetasRecientes(items, max) {
       abrirCon(1600, 1200);
     }
   }
-  $('f-foto').addEventListener('click', cqAbrir);
-  $('f-foto-vacia').addEventListener('click', cqAbrir);
+  $('f-foto').addEventListener('click', () => cqAbrir('foto'));
+  $('f-foto-vacia').addEventListener('click', () => cqAbrir('foto'));
+  $('f-mapa').addEventListener('click', () => cqAbrir('mapa'));
   function cqPunto(e){
     const r = cqCv.getBoundingClientRect();
     return [ (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height ];
@@ -1557,12 +1613,18 @@ function etiquetasRecientes(items, max) {
   $('cq-guardar').addEventListener('click', async () => {
     $('croquis-capa').classList.remove('on');
     if(!momento) return;
-    await ejecutarGuardado({ croquis: cq.trazos.length ? { base: cq.base, trazos: cq.trazos } : null });
-    const media = momento.media || {};
-    const hayImagen = !!(media.foto || media.croquis);
-    $('f-foto').classList.toggle('hide', !hayImagen);
-    $('f-foto-vacia').classList.toggle('hide', hayImagen);
-    if(hayImagen) pintarFotoFicha(momento, $('f-foto'));
+    if(cqDestino === 'mapa'){
+      const m = momento.media && momento.media.mapa;
+      if(m) await ejecutarGuardado({ mapa: Object.assign({}, m, { trazos: cq.trazos.slice() }) });
+      if(momento.media && momento.media.mapa) pintarMapaFicha(momento, $('f-mapa'));
+    } else {
+      await ejecutarGuardado({ croquis: cq.trazos.length ? { base: cq.base, trazos: cq.trazos } : null });
+      const media = momento.media || {};
+      const hayImagen = !!(media.foto || media.croquis);
+      $('f-foto').classList.toggle('hide', !hayImagen);
+      $('f-foto-vacia').classList.toggle('hide', hayImagen);
+      if(hayImagen) pintarFotoFicha(momento, $('f-foto'));
+    }
     pintarTabla(momento);
   });
 
@@ -1602,7 +1664,7 @@ function etiquetasRecientes(items, max) {
     const media = momento.media || {};
     $('h-foto').classList.toggle('hide', !media.foto);
     $('h-sello').classList.toggle('hide', !media.foto);
-    $('h-mapa').classList.toggle('hide', !momento.posicion);
+    $('h-mapa').classList.toggle('hide', !(momento.posicion || media.mapa));
     $('h-video').classList.toggle('hide', !media.video);
     $('h-voz').classList.toggle('hide', !media.notaVoz);
     $('h-borrar').classList.toggle('hide', !momento._id);
@@ -1751,11 +1813,29 @@ function etiquetasRecientes(items, max) {
     x.fillText(attr, MAPA_W - 10 - x.measureText(attr).width, MAPA_H + banda / 2);
     return c;
   }
+  // pinta el mapa guardado (con sus anotaciones) en un canvas, sin necesitar internet
+  function mapaGuardadoACanvas(mapa){
+    return new Promise((resolve, reject) => {
+      const im = new Image();
+      im.onload = () => {
+        const c = document.createElement('canvas');
+        c.width = im.naturalWidth; c.height = im.naturalHeight;
+        const x = c.getContext('2d');
+        x.drawImage(im, 0, 0);
+        if(mapa.trazos && mapa.trazos.length) dibujarTrazos(x, mapa.trazos, c.width, c.height);
+        resolve(c);
+      };
+      im.onerror = () => reject(new Error('no se pudo leer el mapa'));
+      im.src = mapa.dataURL;
+    });
+  }
   $('h-mapa').addEventListener('click', async () => {
-    if(!momento || !momento.posicion) return;
-    $('h-mapa').textContent = 'cargando teselas…';
+    if(!momento) return;
+    const guardado = momento.media && momento.media.mapa;
+    if(!guardado && !momento.posicion) return;
+    $('h-mapa').textContent = guardado ? 'preparando mapa…' : 'cargando teselas…';
     try{
-      const c = await generarMapa(momento);
+      const c = guardado ? await mapaGuardadoACanvas(guardado) : await generarMapa(momento);
       const base = nombreArchivo(fechaDe(momento)).replace(/\.json$/, '');
       c.toBlob((blob) => {
         if(blob) bajarBlob(blob, base + '_mapa.jpg');
@@ -1765,6 +1845,27 @@ function etiquetasRecientes(items, max) {
     }catch(err){
       $('h-mapa').textContent = 'mapa falló: ' + (err && err.name || 'error');
     }
+  });
+  // traer el mapa de la posición y guardarlo en el momento (queda anotable y offline)
+  $('f-traer-mapa').addEventListener('click', async () => {
+    if(!momento || !momento.posicion) return;
+    const btn = $('f-traer-mapa');
+    btn.textContent = 'cargando teselas…'; btn.disabled = true;
+    try{
+      const c = await generarMapa(momento);
+      const dataURL = c.toDataURL('image/jpeg', 0.9);
+      const p = momento.posicion;
+      await ejecutarGuardado({ mapa: { dataURL, lat: p.lat, lon: p.lon, z: MAPA_Z, formato: 'image/jpeg', trazos: [] } });
+      btn.classList.add('hide');
+      $('f-mapa-wrap').classList.remove('hide');
+      pintarMapaFicha(momento, $('f-mapa'));
+      pintarTabla(momento);
+    }catch(err){
+      btn.textContent = 'mapa falló: ' + (err && err.name || 'error');
+      setTimeout(() => { btn.textContent = 'traer mapa de la posición'; btn.disabled = false; }, 2500);
+      return;
+    }
+    btn.textContent = 'traer mapa de la posición'; btn.disabled = false;
   });
 
   // ---------- herramientas: importar, respaldo, cuaderno MD ----------
