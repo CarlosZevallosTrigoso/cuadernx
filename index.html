@@ -269,6 +269,15 @@
           <input type="file" id="file-json" accept="application/json,.json" class="hide">
           <button class="b" id="exportar-todo">exportar todo · respaldo</button>
           <button class="b" id="cuaderno-md">cuaderno MD</button>
+          <div class="sec-t" style="margin-top:14px">Google Drive · sincronizar a tu carpeta</div>
+          <input type="text" id="drive-cid" placeholder="ID de cliente OAuth de Google" autocomplete="off" autocapitalize="off" spellcheck="false">
+          <label class="sw" style="margin-top:6px"><span>subir al capturar<small>cada momento va solo a tu Drive</small></span>
+            <input type="checkbox" id="t-drive-auto"><span class="tog"></span></label>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px">
+            <button class="b" id="drive-conectar">conectar Drive</button>
+            <button class="b" id="drive-subir-todo">subir pendientes</button>
+          </div>
+          <div id="drive-estado" style="color:var(--ink-dim); font-size:11px; margin-top:8px; min-height:15px"></div>
         </div>
       </details>
     </div>
@@ -357,6 +366,8 @@
     <div id="cq-lienzo-wrap"><canvas id="cq-lienzo"></canvas></div>
   </div>
 
+<!-- Google Identity Services: solo se usa si configuras la sincronización con Drive -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 'use strict';
 // ============================================================
@@ -726,7 +737,8 @@ function etiquetasRecientes(items, max) {
   $('titulo').addEventListener('click', () => location.reload());
 
   // ---------- preferencias (localStorage: configuración, no datos de campo) ----------
-  const PREFS_DEF = { mov:true, pos:true, foto:true, clip:'ninguno', dur:5, camara:'environment', pestana:'campo', ajustes:true };
+  const PREFS_DEF = { mov:true, pos:true, foto:true, clip:'ninguno', dur:5, camara:'environment', pestana:'campo', ajustes:true,
+    driveClientId:'', driveAuto:false, driveFolderId:'', driveFolderNombre:'CuadernX' };
   let PREFS = PREFS_DEF;
   try{
     const g = localStorage.getItem('cuadernx-prefs');
@@ -748,6 +760,8 @@ function etiquetasRecientes(items, max) {
     $('camara').value = PREFS.camara;
     $('dur-fila').classList.toggle('hide', PREFS.clip === 'ninguno');
     $('ajustes').classList.toggle('on', PREFS.ajustes);
+    $('drive-cid').value = PREFS.driveClientId || '';
+    $('t-drive-auto').checked = !!PREFS.driveAuto;
   }
   function leerPrefsDeUI(){
     PREFS.mov = $('t-mov').checked; PREFS.pos = $('t-pos').checked;
@@ -1107,10 +1121,12 @@ function etiquetasRecientes(items, max) {
     if(confSel.size) momento.etiquetas = Array.from(confSel);
     try{ momento._id = await guardarEnDB(momento); }
     catch(_){ momento._id = null; }
+    const guardado = momento, gid = momento._id;
     momento = null;
     verVista('campo');
     linea.textContent = 'guardado ✓';
     setTimeout(() => { if(linea.textContent === 'guardado ✓') linea.textContent = ''; }, 2000);
+    autoSubirDrive(guardado, gid); // sube a Drive en segundo plano si está activado
   });
   $('conf-descartar').addEventListener('click', () => {
     if(!confirm('¿Descartar este momento? No se puede recuperar.')) return;
@@ -1206,6 +1222,131 @@ function etiquetasRecientes(items, max) {
     const d = new Date(mo.creado);
     return isNaN(d) ? new Date() : d;
   }
+
+  // ---------- Google Drive (opcional: sincronización a tu carpeta) ----------
+  // Permiso mínimo drive.file: la app solo ve/edita los archivos que ella misma crea.
+  const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+  let driveTokenClient = null, driveToken = null, driveTokenExp = 0;
+  function driveLibListo(){ return !!(window.google && google.accounts && google.accounts.oauth2); }
+  function driveInitClient(){
+    if(!PREFS.driveClientId || !driveLibListo()) return null;
+    if(driveTokenClient && driveTokenClient._cid === PREFS.driveClientId) return driveTokenClient;
+    driveTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: PREFS.driveClientId, scope: DRIVE_SCOPE, callback: () => {},
+    });
+    driveTokenClient._cid = PREFS.driveClientId;
+    return driveTokenClient;
+  }
+  function driveGetToken(interactivo){
+    return new Promise((resolve, reject) => {
+      if(driveToken && Date.now() < driveTokenExp - 60000) return resolve(driveToken);
+      const tc = driveInitClient();
+      if(!tc) return reject(new Error('falta el ID de cliente o la librería de Google no cargó'));
+      tc.callback = (resp) => {
+        if(resp && resp.access_token){
+          driveToken = resp.access_token;
+          driveTokenExp = Date.now() + (resp.expires_in ? resp.expires_in * 1000 : 3600000);
+          resolve(driveToken);
+        } else reject(new Error(resp && resp.error ? resp.error : 'no se obtuvo permiso'));
+      };
+      try{ tc.requestAccessToken({ prompt: interactivo ? 'consent' : '' }); }
+      catch(err){ reject(err); }
+    });
+  }
+  async function driveCarpeta(token){
+    if(PREFS.driveFolderId) return PREFS.driveFolderId;
+    const nombre = PREFS.driveFolderNombre || 'CuadernX';
+    // buscar una carpeta (creada por la app) con ese nombre
+    const q = "mimeType='application/vnd.google-apps.folder' and name='" +
+      nombre.replace(/'/g, "\\'") + "' and trashed=false";
+    const r = await fetch('https://www.googleapis.com/drive/v3/files?spaces=drive&fields=files(id,name)&q=' +
+      encodeURIComponent(q), { headers: { Authorization: 'Bearer ' + token } });
+    if(r.ok){
+      const j = await r.json();
+      if(j.files && j.files.length){ PREFS.driveFolderId = j.files[0].id; guardarPrefs(); return PREFS.driveFolderId; }
+    }
+    // crearla si no existe
+    const cr = await fetch('https://www.googleapis.com/drive/v3/files?fields=id', {
+      method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: nombre, mimeType: 'application/vnd.google-apps.folder' }),
+    });
+    if(!cr.ok) throw new Error('no se pudo crear la carpeta (' + cr.status + ')');
+    const cj = await cr.json();
+    PREFS.driveFolderId = cj.id; guardarPrefs();
+    return cj.id;
+  }
+  async function driveSubir(nombre, textoJSON){
+    const token = await driveGetToken(false);
+    const folderId = await driveCarpeta(token);
+    const metadata = { name: nombre, parents: [folderId], mimeType: 'application/json' };
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    form.append('file', new Blob([textoJSON], { type: 'application/json' }));
+    const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name', {
+      method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: form });
+    if(!r.ok) throw new Error('Drive respondió ' + r.status);
+    return r.json();
+  }
+  // índice local de qué momentos ya se subieron (por id de IndexedDB)
+  function driveSubidos(){
+    try{ return new Set(JSON.parse(localStorage.getItem('cuadernx-drive-subidos') || '[]')); }
+    catch(_){ return new Set(); }
+  }
+  function driveMarcar(id){
+    const s = driveSubidos(); s.add(id);
+    try{ localStorage.setItem('cuadernx-drive-subidos', JSON.stringify(Array.from(s))); }catch(_){ }
+  }
+  // sube un momento recién guardado en segundo plano (no bloquea la UI)
+  async function autoSubirDrive(mo, id){
+    if(!PREFS.driveAuto || !PREFS.driveClientId || !driveLibListo()) return;
+    try{
+      await driveSubir(nombreArchivo(fechaDe(mo)), jsonDe(mo));
+      if(id != null) driveMarcar(id);
+    }catch(_){ /* silencioso: queda como pendiente para 'subir pendientes' */ }
+  }
+  $('drive-cid').addEventListener('change', () => {
+    const nuevo = $('drive-cid').value.trim();
+    if(nuevo !== PREFS.driveClientId){
+      PREFS.driveClientId = nuevo;
+      PREFS.driveFolderId = ''; driveToken = null; driveTokenClient = null; // reinicia si cambia de cuenta/proyecto
+    }
+    guardarPrefs();
+  });
+  $('t-drive-auto').addEventListener('change', () => { PREFS.driveAuto = $('t-drive-auto').checked; guardarPrefs(); });
+  $('drive-conectar').addEventListener('click', async () => {
+    const est = $('drive-estado');
+    if(!PREFS.driveClientId){ est.textContent = 'pega primero el ID de cliente'; return; }
+    if(!driveLibListo()){ est.textContent = 'la librería de Google no cargó (¿sin conexión?)'; return; }
+    est.textContent = 'conectando…';
+    try{
+      await driveGetToken(true);
+      const token = await driveGetToken(false);
+      await driveCarpeta(token);
+      est.textContent = 'conectado ✓ · carpeta "' + (PREFS.driveFolderNombre || 'CuadernX') + '"';
+    }catch(err){ est.textContent = 'error: ' + (err && err.message || err); }
+  });
+  $('drive-subir-todo').addEventListener('click', async () => {
+    const est = $('drive-estado');
+    if(!PREFS.driveClientId){ est.textContent = 'falta el ID de cliente'; return; }
+    if(!driveLibListo()){ est.textContent = 'la librería de Google no cargó'; return; }
+    let items;
+    try{ items = await listarDB(); }catch(_){ est.textContent = 'memoria no disponible'; return; }
+    const subidos = driveSubidos();
+    const pend = items.filter((it) => !subidos.has(it.id));
+    if(!pend.length){ est.textContent = 'todo al día ✓'; return; }
+    est.textContent = 'subiendo 0/' + pend.length + '…';
+    let ok = 0;
+    for(const it of pend){
+      try{
+        const mo = await leerDeDB(it.id);
+        if(!mo) continue;
+        await driveSubir(nombreArchivo(fechaDe(mo)), JSON.stringify(mo, null, 2));
+        driveMarcar(it.id); ok++;
+        est.textContent = 'subiendo ' + ok + '/' + pend.length + '…';
+      }catch(err){ est.textContent = 'falló en uno (' + (err && err.message || 'error') + '); sigue pendiente'; return; }
+    }
+    est.textContent = 'subidos ' + ok + '/' + pend.length + ' ✓';
+  });
 
   // ---------- cuaderno: lista por jornadas ----------
   let filtroTag = '', soloPendientes = false;
