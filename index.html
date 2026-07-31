@@ -199,7 +199,7 @@
     <!-- ===== CAMPO ===== -->
     <div class="vista" id="v-campo">
       <div id="ajustes">
-        <div class="sec-t">Ajustes · se recuerdan</div>
+        <div class="sec-t">Qué capturar · foto, audio o video · se recuerda</div>
         <label class="sw"><span>movimiento y orientación<small>acelerómetro · brújula · 1 s</small></span>
           <input type="checkbox" id="t-mov"><span class="tog"></span></label>
         <label class="sw"><span>posición<small>GPS</small></span>
@@ -726,7 +726,7 @@ function etiquetasRecientes(items, max) {
   $('titulo').addEventListener('click', () => location.reload());
 
   // ---------- preferencias (localStorage: configuración, no datos de campo) ----------
-  const PREFS_DEF = { mov:true, pos:true, foto:true, clip:'ninguno', dur:5, camara:'environment', pestana:'campo' };
+  const PREFS_DEF = { mov:true, pos:true, foto:true, clip:'ninguno', dur:5, camara:'environment', pestana:'campo', ajustes:true };
   let PREFS = PREFS_DEF;
   try{
     const g = localStorage.getItem('cuadernx-prefs');
@@ -747,6 +747,7 @@ function etiquetasRecientes(items, max) {
     $('dur').value = PREFS.dur; $('dur-v').textContent = PREFS.dur;
     $('camara').value = PREFS.camara;
     $('dur-fila').classList.toggle('hide', PREFS.clip === 'ninguno');
+    $('ajustes').classList.toggle('on', PREFS.ajustes);
   }
   function leerPrefsDeUI(){
     PREFS.mov = $('t-mov').checked; PREFS.pos = $('t-pos').checked;
@@ -769,7 +770,10 @@ function etiquetasRecientes(items, max) {
   $('t-foto').addEventListener('change', alCambiarMedia);
   $('clip-modo').addEventListener('change', alCambiarMedia);
   $('camara').addEventListener('change', () => { if(necesitaCamara()) encenderCamara(); });
-  $('aj-btn').addEventListener('click', () => $('ajustes').classList.toggle('on'));
+  $('aj-btn').addEventListener('click', () => {
+    PREFS.ajustes = $('ajustes').classList.toggle('on');
+    guardarPrefs();
+  });
 
   // ---------- navegación ----------
   let momento = null;
