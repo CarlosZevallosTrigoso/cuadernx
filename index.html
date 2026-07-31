@@ -167,6 +167,38 @@
   }
   #vz-controles button:hover{border-color:var(--accent); color:var(--accent)}
   #vz-controles button.rec{background:var(--warn); border-color:var(--warn); color:#0e0f08}
+
+  /* jornadas y filtro */
+  .jornada-h{
+    padding:10px 18px 4px; color:var(--accent); font-size:11px; letter-spacing:.12em;
+    font-variant-numeric:tabular-nums;
+  }
+  #filtro-wrap{padding:10px 18px 0}
+  #extraer{flex-wrap:wrap}
+  #extraer button{flex:1 1 30%}
+
+  /* croquis */
+  #croquis-capa{
+    position:fixed; inset:0; background:var(--bg); z-index:50;
+    display:none; flex-direction:column;
+  }
+  #croquis-capa.on{display:flex}
+  #cq-barra{
+    display:flex; gap:8px; align-items:center; padding:10px 14px;
+    border-bottom:1px solid var(--line); flex-wrap:wrap;
+  }
+  .cq-color{
+    width:26px; height:26px; border-radius:2px; border:1px solid var(--line); cursor:pointer;
+    flex:none;
+  }
+  .cq-color.act{outline:2px solid var(--ink); outline-offset:1px}
+  #cq-barra button{
+    font-family:var(--mono); font-size:11px; cursor:pointer; border-radius:2px;
+    padding:6px 9px; border:1px solid var(--line); background:#12130c; color:var(--ink);
+  }
+  #cq-barra button.act{border-color:var(--accent); color:var(--accent)}
+  #cq-lienzo-wrap{flex:1; display:flex; align-items:center; justify-content:center; overflow:hidden; padding:10px}
+  #cq-lienzo{touch-action:none; box-shadow:0 1px 0 #0006, 0 8px 30px #0008; max-width:100%; max-height:100%}
 </style>
 </head>
 <body>
@@ -267,6 +299,9 @@
       <div class="btnrow" id="extraer" style="padding-top:0">
         <button id="sacar-foto" class="hide">guardar foto</button>
         <button id="sacar-sello" class="hide">foto+datos</button>
+        <button id="sacar-mapa" class="hide">guardar mapa</button>
+        <button id="sacar-md">exportar MD</button>
+        <button id="croquis-btn">croquis</button>
         <button id="sacar-audio" class="hide">guardar audio</button>
         <button id="sacar-voz" class="hide">guardar voz</button>
         <button id="borrar" class="hide">borrar de memoria</button>
@@ -278,12 +313,34 @@
       <div id="drop-json">suelta un .json de cuadernx aquí (momento o respaldo), o toca para elegir</div>
       <input type="file" id="file-json" accept="application/json,.json" class="hide">
       <div class="sec-t" style="padding:14px 18px 0">Memoria corta · este navegador</div>
+      <div id="filtro-wrap" class="hide">
+        <select id="filtro-tag"><option value="">todas las etiquetas</option></select>
+      </div>
       <div id="lista"></div>
       <div class="btnrow" style="padding-top:6px">
         <button id="exportar-todo">exportar todo · respaldo</button>
+        <button id="cuaderno-md">cuaderno MD</button>
       </div>
     </div>
   </main>
+
+  <!-- croquis -->
+  <div id="croquis-capa">
+    <div id="cq-barra">
+      <div class="cq-color act" data-c="#8fa676" style="background:#8fa676"></div>
+      <div class="cq-color" data-c="#b06a36" style="background:#b06a36"></div>
+      <div class="cq-color" data-c="#4f6b82" style="background:#4f6b82"></div>
+      <div class="cq-color" data-c="#d8d6c4" style="background:#d8d6c4"></div>
+      <button id="cq-fino" class="act">fino</button>
+      <button id="cq-grueso">grueso</button>
+      <button id="cq-deshacer">deshacer</button>
+      <button id="cq-limpiar">limpiar</button>
+      <span style="flex:1"></span>
+      <button id="cq-guardar" style="border-color:var(--accent-dim); background:var(--accent-dim); color:#0e0f08">guardar</button>
+      <button id="cq-cancelar">cancelar</button>
+    </div>
+    <div id="cq-lienzo-wrap"><canvas id="cq-lienzo"></canvas></div>
+  </div>
 
 <script>
 'use strict';
@@ -445,8 +502,127 @@ function aplicarEdicion(mo, cambios, isoAhora) {
       if (!Object.keys(out.media).length) delete out.media;
     }
   }
+  if ('croquis' in cambios) {
+    if (cambios.croquis && cambios.croquis.trazos && cambios.croquis.trazos.length) {
+      out.media = out.media || {};
+      out.media.croquis = cambios.croquis;
+    } else if (out.media) {
+      delete out.media.croquis;
+      if (!Object.keys(out.media).length) delete out.media;
+    }
+  }
   out.modificado = isoAhora;
   return out;
+}
+
+function teselaDe(lat, lon, z) {
+  const n = Math.pow(2, z);
+  const latR = lat * Math.PI / 180;
+  return {
+    x: (lon + 180) / 360 * n,
+    y: (1 - Math.log(Math.tan(latR) + 1 / Math.cos(latR)) / Math.PI) / 2 * n,
+  };
+}
+
+function jornadaDe(iso, tz) {
+  const d = new Date(iso);
+  if (isNaN(d)) return null;
+  try {
+    const fmt = new Intl.DateTimeFormat('sv', { timeZone: tz || undefined,
+      year: 'numeric', month: '2-digit', day: '2-digit' });
+    return fmt.format(d);
+  } catch (_) { return iso.slice(0, 10); }
+}
+
+function agruparPorJornada(items) {
+  const grupos = [], idx = new Map();
+  for (const it of items) {
+    const j = jornadaDe(it.creado, it.tz) || 'sin fecha';
+    if (!idx.has(j)) { idx.set(j, { jornada: j, items: [] }); grupos.push(idx.get(j)); }
+    idx.get(j).items.push(it);
+  }
+  return grupos;
+}
+
+function mdDeMomento(mo, opts) {
+  opts = opts || {};
+  const L = [];
+  const hora = fechaSello(mo.creado, mo.meta && mo.meta.zonaHoraria) || mo.creado;
+  L.push('## ' + hora);
+  L.push('');
+  if (mo.etiquetas && mo.etiquetas.length) {
+    L.push(mo.etiquetas.map((t) => '#' + t).join(' '));
+    L.push('');
+  }
+  if (mo.media && mo.media.foto && !opts.sinFoto) {
+    L.push('![foto del momento](' + mo.media.foto.dataURL + ')');
+    L.push('');
+  }
+  const datos = [];
+  if (mo.posicion) {
+    datos.push('**posición** ' + mo.posicion.lat.toFixed(5) + ', ' + mo.posicion.lon.toFixed(5) +
+      (typeof mo.posicion.precisionM === 'number' ? ' ±' + Math.round(mo.posicion.precisionM) + ' m' : ''));
+  }
+  if (mo.orientacion && typeof mo.orientacion.brujula === 'number') {
+    datos.push('**brújula** ' + Math.round(mo.orientacion.brujula) + '° ' + cardinalDe(mo.orientacion.brujula));
+  }
+  if (datos.length) { L.push(datos.join(' · ')); L.push(''); }
+  if (mo.nota) { L.push(mo.nota); L.push(''); }
+  if (mo.media && mo.media.audio) L.push('> sonido ambiente registrado (' + (mo.media.audio.segundos || '?') + ' s) — en el JSON');
+  if (mo.media && mo.media.notaVoz) L.push('> nota de voz adjunta — en el JSON');
+  if (mo.media && (mo.media.audio || mo.media.notaVoz)) L.push('');
+  return L.join('\n');
+}
+
+function mdDeCuaderno(momentos, opts) {
+  const grupos = agruparPorJornada(momentos.map((mo) => ({
+    creado: mo.creado, tz: mo.meta && mo.meta.zonaHoraria, mo: mo,
+  })));
+  const L = ['# Cuaderno de campo', ''];
+  for (const g of grupos) {
+    L.push('---'); L.push(''); L.push('# ' + g.jornada); L.push('');
+    for (const it of g.items) { L.push(mdDeMomento(it.mo, opts)); }
+  }
+  return L.join('\n');
+}
+
+function _abAB64(buf) {
+  const b = new Uint8Array(buf); let s = '';
+  for (let i = 0; i < b.length; i += 0x8000) {
+    s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000));
+  }
+  return btoa(s);
+}
+function _b64AAb(b64) {
+  const bin = atob(b64);
+  const b = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i);
+  return b;
+}
+async function _claveDe(frase, salt, iter) {
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(frase), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: salt, iterations: iter, hash: 'SHA-256' },
+    base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+async function cifrarRespaldo(textoJSON, frase) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const iter = 250000;
+  const clave = await _claveDe(frase, salt, iter);
+  const cifrado = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, clave,
+    new TextEncoder().encode(textoJSON));
+  return {
+    formato: 'cuadernx-respaldo-cifrado/1',
+    kdf: { algo: 'PBKDF2-SHA256', iteraciones: iter, salt: _abAB64(salt) },
+    iv: _abAB64(iv),
+    datos: _abAB64(cifrado),
+  };
+}
+async function descifrarRespaldo(obj, frase) {
+  const clave = await _claveDe(frase, _b64AAb(obj.kdf.salt), obj.kdf.iteraciones);
+  const plano = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: _b64AAb(obj.iv) }, clave, _b64AAb(obj.datos));
+  return new TextDecoder().decode(plano);
 }
 
 // ============================================================
@@ -537,21 +713,30 @@ function aplicarEdicion(mo, cambios, isoAhora) {
         });
       };
       const onOri = (e) => {
+        // no pisar una lectura absoluta con una relativa posterior
+        if(ultimaOri && ultimaOri.absoluta && !e.absolute && e.type !== 'deviceorientationabsolute') return;
         ultimaOri = {
           alpha: red(e.alpha), beta: red(e.beta), gamma: red(e.gamma),
-          absoluta: !!e.absolute,
+          absoluta: !!e.absolute || e.type === 'deviceorientationabsolute',
         };
-        // brújula: solo iOS/WebKit. Fuera de ahí queda ausente, no inventada.
         if(typeof e.webkitCompassHeading === 'number'){
+          // iOS/WebKit: rumbo de brújula directo
           ultimaOri.brujula = red(e.webkitCompassHeading);
+          ultimaOri.brujulaFuente = 'webkit';
           if(typeof e.webkitCompassAccuracy === 'number') ultimaOri.brujulaPrecision = red(e.webkitCompassAccuracy);
+        } else if(ultimaOri.absoluta && typeof e.alpha === 'number'){
+          // Android/Chrome: alpha absoluto -> rumbo aproximado (pantalla hacia arriba)
+          ultimaOri.brujula = red((360 - e.alpha) % 360);
+          ultimaOri.brujulaFuente = 'alpha-absoluta';
         }
       };
       window.addEventListener('devicemotion', onMov);
       window.addEventListener('deviceorientation', onOri);
+      window.addEventListener('deviceorientationabsolute', onOri);
       setTimeout(() => {
         window.removeEventListener('devicemotion', onMov);
         window.removeEventListener('deviceorientation', onOri);
+        window.removeEventListener('deviceorientationabsolute', onOri);
         resolve({ muestras, orientacion: ultimaOri });
       }, ms);
     });
@@ -758,6 +943,8 @@ function aplicarEdicion(mo, cambios, isoAhora) {
         out.push({
           id: cur.value.id,
           creado: mo.creado,
+          tz: mo.meta && mo.meta.zonaHoraria,
+          etiquetas: mo.etiquetas || [],
           tiene: [
             mo.posicion ? 'gps' : null,
             mo.movimiento ? 'mov' : null,
@@ -813,8 +1000,8 @@ function aplicarEdicion(mo, cambios, isoAhora) {
 
     const img = $('r-foto'), au = $('r-audio'), vz = $('r-voz');
     const media = mo.media || {};
-    img.classList.toggle('hide', !media.foto);
-    if(media.foto) img.src = media.foto.dataURL;
+    img.classList.toggle('hide', !(media.foto || media.croquis));
+    pintarFotoFicha(mo, img);
 
     $('r-nota').classList.toggle('hide', !mo.nota);
     $('r-nota').textContent = mo.nota || '';
@@ -838,6 +1025,7 @@ function aplicarEdicion(mo, cambios, isoAhora) {
 
     $('sacar-foto').classList.toggle('hide', !media.foto);
     $('sacar-sello').classList.toggle('hide', !media.foto);
+    $('sacar-mapa').classList.toggle('hide', !mo.posicion);
     $('sacar-audio').classList.toggle('hide', !media.audio);
     $('sacar-voz').classList.toggle('hide', !media.notaVoz);
     $('borrar').classList.toggle('hide', !mo._id);
@@ -938,6 +1126,19 @@ function aplicarEdicion(mo, cambios, isoAhora) {
       momentos: momentos,
     };
     const nombre = nombreArchivo(new Date()).replace(/^cuadernx_/, 'cuadernx_respaldo_');
+    // cifrado opcional: WebCrypto (AES-GCM, clave derivada por PBKDF2)
+    const frase = prompt('Frase de paso para cifrar el respaldo\n(deja vacío para exportar sin cifrar):');
+    if(frase === null) return; // canceló
+    if(frase){
+      try{
+        const cif = await cifrarRespaldo(JSON.stringify(respaldo), frase);
+        compartirOBajar(new Blob([JSON.stringify(cif)], { type: 'application/json' }), nombre);
+        return;
+      }catch(err){
+        $('exportar-todo').textContent = 'cifrado falló: ' + (err && err.name || 'error');
+        return;
+      }
+    }
     compartirOBajar(new Blob([JSON.stringify(respaldo)], { type: 'application/json' }), nombre);
   });
   $('sacar-foto').addEventListener('click', () => {
@@ -963,6 +1164,7 @@ function aplicarEdicion(mo, cambios, isoAhora) {
       c.width = w; c.height = h + banda;
       const x = c.getContext('2d');
       x.drawImage(img, 0, 0);
+      if(mo.media && mo.media.croquis) dibujarTrazos(x, mo.media.croquis.trazos, w, h);
       x.fillStyle = '#16170f';
       x.fillRect(0, h, w, banda);
       x.textBaseline = 'middle';
@@ -998,6 +1200,228 @@ function aplicarEdicion(mo, cambios, isoAhora) {
     if(!momento || !momento._id) return;
     await borrarDeDB(momento._id);
     verVista('arc'); pintarLista();
+  });
+
+  // ---------- croquis: render de trazos (coordenadas normalizadas 0..1) ----------
+  function dibujarTrazos(x, trazos, w, h){
+    for(const t of (trazos || [])){
+      if(!t.puntos || t.puntos.length < 2) continue;
+      x.strokeStyle = t.color || '#8fa676';
+      x.lineWidth = Math.max(1, (t.ancho || 0.006) * w);
+      x.lineCap = 'round'; x.lineJoin = 'round';
+      x.beginPath();
+      x.moveTo(t.puntos[0][0] * w, t.puntos[0][1] * h);
+      for(let i = 1; i < t.puntos.length; i++) x.lineTo(t.puntos[i][0] * w, t.puntos[i][1] * h);
+      x.stroke();
+    }
+  }
+
+  // ficha: foto con croquis superpuesto (solo display; la foto del JSON queda intacta)
+  function pintarFotoFicha(mo, imgEl){
+    const media = mo.media || {};
+    if(media.foto && !media.croquis){ imgEl.src = media.foto.dataURL; return; }
+    if(!media.foto && !media.croquis) return;
+    const pintar = (w, h, fondo) => {
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      const x = c.getContext('2d');
+      if(fondo) x.drawImage(fondo, 0, 0);
+      else{ x.fillStyle = '#ece6d4'; x.fillRect(0, 0, w, h); }
+      dibujarTrazos(x, media.croquis.trazos, w, h);
+      imgEl.src = c.toDataURL('image/jpeg', 0.85);
+    };
+    if(media.foto){
+      const im = new Image();
+      im.onload = () => pintar(im.naturalWidth, im.naturalHeight, im);
+      im.src = media.foto.dataURL;
+    } else {
+      pintar(1600, 1200, null); // croquis sobre lienzo en blanco
+    }
+  }
+
+  // ---------- mapa OSM/Carto con pin ----------
+  const MAPA_Z = 16, TESELA_PX = 512, MAPA_W = 1200, MAPA_H = 900;
+  function urlTesela(x, y, z){
+    const sub = 'abcd'[(x + y) % 4];
+    return 'https://' + sub + '.basemaps.cartocdn.com/rastertiles/voyager/' + z + '/' + x + '/' + y + '@2x.png';
+  }
+  function cargarImg(url){
+    return new Promise((resolve) => {
+      const im = new Image();
+      im.crossOrigin = 'anonymous';
+      im.onload = () => resolve(im);
+      im.onerror = () => resolve(null); // tesela caída: hueco gris, no fallo total
+      im.src = url;
+    });
+  }
+  async function generarMapa(mo){
+    const p = mo.posicion;
+    const t = teselaDe(p.lat, p.lon, MAPA_Z);
+    const gx = t.x * TESELA_PX, gy = t.y * TESELA_PX; // píxel global del pin
+    const x0 = gx - MAPA_W / 2, y0 = gy - MAPA_H / 2;
+    const tx0 = Math.floor(x0 / TESELA_PX), tx1 = Math.floor((x0 + MAPA_W) / TESELA_PX);
+    const ty0 = Math.floor(y0 / TESELA_PX), ty1 = Math.floor((y0 + MAPA_H) / TESELA_PX);
+    const n = Math.pow(2, MAPA_Z);
+    const cargas = [];
+    for(let ty = ty0; ty <= ty1; ty++){
+      for(let tx = tx0; tx <= tx1; tx++){
+        const txm = ((tx % n) + n) % n; // envolver longitud
+        cargas.push(cargarImg(urlTesela(txm, ty, MAPA_Z)).then((im) => ({ im, tx, ty })));
+      }
+    }
+    const teselas = await Promise.all(cargas);
+    const banda = 26;
+    const c = document.createElement('canvas');
+    c.width = MAPA_W; c.height = MAPA_H + banda;
+    const x = c.getContext('2d');
+    x.fillStyle = '#dfe3e0'; x.fillRect(0, 0, MAPA_W, MAPA_H);
+    for(const s of teselas){
+      if(s.im) x.drawImage(s.im, s.tx * TESELA_PX - x0, s.ty * TESELA_PX - y0, TESELA_PX, TESELA_PX);
+    }
+    // pin: aguja + cabeza musgo con borde carbón
+    const px = MAPA_W / 2, py = MAPA_H / 2;
+    x.strokeStyle = '#16170f'; x.lineWidth = 3;
+    x.beginPath(); x.moveTo(px, py); x.lineTo(px, py - 26); x.stroke();
+    x.fillStyle = '#8fa676';
+    x.beginPath(); x.arc(px, py - 32, 9, 0, Math.PI * 2); x.fill();
+    x.lineWidth = 2; x.beginPath(); x.arc(px, py - 32, 9, 0, Math.PI * 2); x.stroke();
+    x.fillStyle = '#16170f';
+    x.beginPath(); x.arc(px, py, 3, 0, Math.PI * 2); x.fill();
+    // banda: coordenadas + atribución obligatoria
+    x.fillStyle = '#16170f'; x.fillRect(0, MAPA_H, MAPA_W, banda);
+    x.font = '500 12px ui-monospace, Menlo, Consolas, monospace';
+    x.textBaseline = 'middle';
+    x.fillStyle = '#d8d6c4';
+    x.fillText(p.lat.toFixed(5) + ', ' + p.lon.toFixed(5) + ' · z' + MAPA_Z, 10, MAPA_H + banda / 2);
+    const attr = '© OpenStreetMap contributors © CARTO';
+    x.fillStyle = '#8a8c78';
+    x.fillText(attr, MAPA_W - 10 - x.measureText(attr).width, MAPA_H + banda / 2);
+    return c;
+  }
+  $('sacar-mapa').addEventListener('click', async () => {
+    if(!momento || !momento.posicion) return;
+    $('sacar-mapa').textContent = 'cargando teselas…';
+    try{
+      const c = await generarMapa(momento);
+      const base = nombreArchivo(fechaDe(momento)).replace(/\.json$/, '');
+      c.toBlob((blob) => {
+        if(blob) bajarBlob(blob, base + '_mapa.jpg');
+        $('sacar-mapa').textContent = 'guardar mapa';
+      }, 'image/jpeg', 0.9);
+    }catch(err){
+      // canvas contaminado (CORS) u otra falla: reportar, no romper
+      $('sacar-mapa').textContent = 'mapa falló: ' + (err && err.name || 'error');
+    }
+  });
+
+  // ---------- markdown ----------
+  $('sacar-md').addEventListener('click', () => {
+    if(!momento) return;
+    const base = nombreArchivo(fechaDe(momento)).replace(/\.json$/, '');
+    compartirOBajar(new Blob([mdDeMomento(momento)], { type: 'text/markdown' }), base + '.md');
+  });
+  $('cuaderno-md').addEventListener('click', async () => {
+    let items;
+    try{ items = await listarDB(); }
+    catch(err){ $('cuaderno-md').textContent = 'memoria no disponible'; return; }
+    if(!items.length){ $('cuaderno-md').textContent = 'no hay momentos'; return; }
+    const momentos = [];
+    for(const it of items){ const mo = await leerDeDB(it.id); if(mo) momentos.push(mo); }
+    momentos.sort((a, b) => String(a.creado).localeCompare(String(b.creado)));
+    const nombre = nombreArchivo(new Date()).replace(/^cuadernx_/, 'cuadernx_cuaderno_').replace(/\.json$/, '.md');
+    compartirOBajar(new Blob([mdDeCuaderno(momentos)], { type: 'text/markdown' }), nombre);
+  });
+
+  // ---------- croquis: capa de dibujo ----------
+  const cq = { trazos: [], actual: null, color: '#8fa676', ancho: 0.006,
+               fondo: null, base: 'lienzo' };
+  const cqCv = $('cq-lienzo'), cqCtx = cqCv.getContext('2d');
+
+  function cqRedibujar(){
+    const w = cqCv.width, h = cqCv.height;
+    if(cq.fondo) cqCtx.drawImage(cq.fondo, 0, 0, w, h);
+    else{ cqCtx.fillStyle = '#ece6d4'; cqCtx.fillRect(0, 0, w, h); }
+    dibujarTrazos(cqCtx, cq.trazos.concat(cq.actual ? [cq.actual] : []), w, h);
+  }
+  function cqAbrir(){
+    if(!momento) return;
+    const media = momento.media || {};
+    cq.trazos = (media.croquis && media.croquis.trazos) ? JSON.parse(JSON.stringify(media.croquis.trazos)) : [];
+    cq.actual = null;
+    const abrirCon = (w, h) => {
+      // ajustar al viewport conservando proporción (el dibujo se guarda normalizado)
+      const maxW = window.innerWidth - 20, maxH = window.innerHeight - 80;
+      const f = Math.min(maxW / w, maxH / h, 1);
+      cqCv.width = Math.round(w * f); cqCv.height = Math.round(h * f);
+      $('croquis-capa').classList.add('on');
+      cqRedibujar();
+    };
+    if(media.foto){
+      cq.base = 'foto';
+      const im = new Image();
+      im.onload = () => { cq.fondo = im; abrirCon(im.naturalWidth, im.naturalHeight); };
+      im.src = media.foto.dataURL;
+    } else {
+      cq.base = 'lienzo'; cq.fondo = null;
+      abrirCon(1600, 1200);
+    }
+  }
+  $('croquis-btn').addEventListener('click', cqAbrir);
+
+  function cqPunto(e){
+    const r = cqCv.getBoundingClientRect();
+    return [ (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height ];
+  }
+  cqCv.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    cqCv.setPointerCapture(e.pointerId);
+    cq.actual = { color: cq.color, ancho: cq.ancho, puntos: [cqPunto(e)] };
+  });
+  cqCv.addEventListener('pointermove', (e) => {
+    if(!cq.actual) return;
+    e.preventDefault();
+    cq.actual.puntos.push(cqPunto(e));
+    cqRedibujar();
+  });
+  function cqSoltar(e){
+    if(!cq.actual) return;
+    if(cq.actual.puntos.length > 1) cq.trazos.push(cq.actual);
+    cq.actual = null;
+    cqRedibujar();
+  }
+  cqCv.addEventListener('pointerup', cqSoltar);
+  cqCv.addEventListener('pointercancel', cqSoltar);
+
+  document.querySelectorAll('.cq-color').forEach((el) => {
+    el.addEventListener('click', () => {
+      document.querySelectorAll('.cq-color').forEach((o) => o.classList.remove('act'));
+      el.classList.add('act');
+      cq.color = el.dataset.c;
+    });
+  });
+  $('cq-fino').addEventListener('click', () => {
+    cq.ancho = 0.006;
+    $('cq-fino').classList.add('act'); $('cq-grueso').classList.remove('act');
+  });
+  $('cq-grueso').addEventListener('click', () => {
+    cq.ancho = 0.014;
+    $('cq-grueso').classList.add('act'); $('cq-fino').classList.remove('act');
+  });
+  $('cq-deshacer').addEventListener('click', () => { cq.trazos.pop(); cqRedibujar(); });
+  $('cq-limpiar').addEventListener('click', () => { cq.trazos = []; cqRedibujar(); });
+  $('cq-cancelar').addEventListener('click', () => $('croquis-capa').classList.remove('on'));
+  $('cq-guardar').addEventListener('click', async () => {
+    $('croquis-capa').classList.remove('on');
+    if(!momento) return;
+    const cambios = { croquis: cq.trazos.length ? { base: cq.base, trazos: cq.trazos } : null };
+    const id = momento._id;
+    const editado = aplicarEdicion(momento, cambios, new Date().toISOString());
+    editado._fecha = momento._fecha; editado._id = id;
+    try{
+      if(id) await actualizarEnDB(id, editado);
+      else editado._id = await guardarEnDB(editado);
+    }catch(err){ }
+    mostrarResultado(editado);
   });
 
   // ---------- edición del momento ----------
@@ -1116,29 +1540,52 @@ function aplicarEdicion(mo, cambios, isoAhora) {
     if($('t-foto').checked) await encenderCamara();
   });
 
-  // ---------- visor: lista de memoria corta ----------
+  // ---------- visor: lista de memoria corta por jornadas ----------
+  let filtroTag = '';
   async function pintarLista(){
     const lista = $('lista');
     let items;
     try{ items = await listarDB(); }
     catch(err){
       lista.innerHTML = '<div class="vacio">memoria corta no disponible en este navegador</div>';
+      $('filtro-wrap').classList.add('hide');
       return;
     }
     if(!items.length){
       lista.innerHTML = '<div class="vacio">sin capturas guardadas — cada captura nueva queda aquí</div>';
+      $('filtro-wrap').classList.add('hide');
       return;
     }
-    lista.innerHTML = items.map((it) => {
-      const d = new Date(it.creado);
-      const cuando = isNaN(d) ? String(it.creado) : d.toLocaleString('es', {
-        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
-      });
-      return '<div class="item" data-id="' + it.id + '">' +
-        '<div><div class="cuando">' + cuando + '</div>' +
-        '<div class="que">' + (it.tiene.join(' · ') || 'solo metadatos') + '</div></div>' +
-        '<div class="peso">' + tamanoLegible(it.bytes) + '</div></div>';
-    }).join('');
+    // poblar filtro con todas las etiquetas presentes
+    const tags = new Set();
+    items.forEach((it) => it.etiquetas.forEach((t) => tags.add(t)));
+    const sel = $('filtro-tag');
+    $('filtro-wrap').classList.toggle('hide', !tags.size);
+    const previa = filtroTag;
+    sel.innerHTML = '<option value="">todas las etiquetas</option>' +
+      Array.from(tags).sort().map((t) =>
+        '<option value="' + t.replace(/"/g, '&quot;') + '">#' + t + '</option>').join('');
+    sel.value = previa; if(sel.value !== previa) filtroTag = '';
+
+    const visibles = filtroTag ? items.filter((it) => it.etiquetas.indexOf(filtroTag) !== -1) : items;
+    if(!visibles.length){
+      lista.innerHTML = '<div class="vacio">sin momentos con esa etiqueta</div>';
+      return;
+    }
+    const grupos = agruparPorJornada(visibles);
+    lista.innerHTML = grupos.map((g) =>
+      '<div class="jornada-h">' + g.jornada + '</div>' +
+      g.items.map((it) => {
+        const d = new Date(it.creado);
+        const cuando = isNaN(d) ? String(it.creado) : d.toLocaleTimeString('es', {
+          hour: '2-digit', minute: '2-digit'
+        });
+        return '<div class="item" data-id="' + it.id + '">' +
+          '<div><div class="cuando">' + cuando + '</div>' +
+          '<div class="que">' + (it.tiene.join(' · ') || 'solo metadatos') + '</div></div>' +
+          '<div class="peso">' + tamanoLegible(it.bytes) + '</div></div>';
+      }).join('')
+    ).join('');
     lista.querySelectorAll('.item').forEach((el) => {
       el.addEventListener('click', async () => {
         const mo = await leerDeDB(+el.dataset.id);
@@ -1148,6 +1595,7 @@ function aplicarEdicion(mo, cambios, isoAhora) {
       });
     });
   }
+  $('filtro-tag').addEventListener('change', () => { filtroTag = $('filtro-tag').value; pintarLista(); });
 
   // ---------- visor: abrir JSON externo ----------
   function abrirJSONExterno(file){
@@ -1155,7 +1603,18 @@ function aplicarEdicion(mo, cambios, isoAhora) {
     const fr = new FileReader();
     fr.onload = async () => {
       try{
-        const obj = JSON.parse(fr.result);
+        let obj = JSON.parse(fr.result);
+        // respaldo cifrado: pedir frase y descifrar
+        if(obj.formato === 'cuadernx-respaldo-cifrado/1'){
+          const frase = prompt('Frase de paso del respaldo:');
+          if(frase === null) return;
+          try{
+            obj = JSON.parse(await descifrarRespaldo(obj, frase));
+          }catch(err){
+            $('drop-json').textContent = 'no se pudo descifrar: frase incorrecta o archivo dañado';
+            return;
+          }
+        }
         // respaldo completo: restaurar todos los momentos a memoria corta
         if(obj.formato === 'cuadernx-respaldo/1' && Array.isArray(obj.momentos)){
           let n = 0;
