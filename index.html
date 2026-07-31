@@ -6,14 +6,9 @@
 <title>CUADERNX · cuaderno de campo</title>
 <style>
   :root{
-    --bg:#16170f;
-    --panel:#1f2017;
-    --line:#33352a;
-    --ink:#d8d6c4;
-    --ink-dim:#8a8c78;
-    --accent:#8fa676;
-    --accent-dim:#5c6b4b;
-    --warn:#c08a5a;
+    --bg:#16170f; --panel:#1f2017; --line:#33352a;
+    --ink:#d8d6c4; --ink-dim:#8a8c78;
+    --accent:#8fa676; --accent-dim:#5c6b4b; --warn:#c08a5a;
     --mono: ui-monospace, "SF Mono", "Fira Code", "DejaVu Sans Mono", Menlo, Consolas, monospace;
   }
   *{box-sizing:border-box}
@@ -25,177 +20,164 @@
     padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
   header{
-    padding:16px 18px 12px; border-bottom:1px solid var(--line);
+    padding:14px 18px 10px; border-bottom:1px solid var(--line);
     display:flex; align-items:baseline; gap:10px;
   }
-  header h1{
-    margin:0; font-size:13px; font-weight:600; letter-spacing:.22em; cursor:pointer;
-    color:var(--ink); user-select:none;
-  }
+  header h1{margin:0; font-size:13px; font-weight:600; letter-spacing:.22em; cursor:pointer; user-select:none}
   header p{margin:0; color:var(--ink-dim); font-size:11px}
-
-  main{flex:1; max-width:560px; width:100%; margin:0 auto; padding-bottom:24px}
-
-  section{border-bottom:1px solid var(--line); padding:14px 18px}
-  .sec-t{
-    color:var(--ink-dim); font-size:10px; letter-spacing:.14em; text-transform:uppercase;
-    margin-bottom:10px;
-  }
-  .sw{
-    display:flex; align-items:center; justify-content:space-between; gap:12px;
-    padding:7px 0; cursor:pointer;
-  }
-  .sw > span{color:var(--ink)}
-  .sw small{display:block; color:var(--ink-dim); font-size:10px; margin-top:1px}
-  .tog{
-    flex:none; width:38px; height:20px; border:1px solid var(--line); border-radius:2px;
-    background:#12130c; position:relative; transition:border-color .12s;
-  }
-  .tog::after{
-    content:''; position:absolute; top:2px; left:2px; width:14px; height:14px;
-    background:var(--ink-dim); border-radius:2px; transition:left .12s, background .12s;
-  }
-  .sw input{display:none}
-  .sw input:checked + .tog{border-color:var(--accent-dim)}
-  .sw input:checked + .tog::after{left:20px; background:var(--accent)}
-
-  .sub{padding:4px 0 6px 0}
-  .inline{display:flex; align-items:center; gap:10px}
-  .inline input[type=range]{flex:1; accent-color:var(--accent)}
-  .val{color:var(--accent); font-variant-numeric:tabular-nums; min-width:3ch; text-align:right}
-  .selrow{display:flex; gap:8px; align-items:center; padding:4px 0}
-  select{
-    flex:1; background:#12130c; color:var(--ink); border:1px solid var(--line);
-    border-radius:2px; padding:6px; font-family:var(--mono); font-size:12px;
-  }
-  .hide{display:none !important}
-
-  /* previsualización de cámara */
-  #prev-wrap{position:relative; margin-top:8px; border:1px solid var(--line); border-radius:2px; overflow:hidden; background:#000}
-  #prev{display:block; width:100%; max-height:38vh; object-fit:cover}
-
-  /* botón de captura */
-  #cap-zone{padding:18px}
-  #cap{
-    width:100%; padding:16px; font-family:var(--mono); font-size:14px; font-weight:600;
-    letter-spacing:.14em; text-transform:uppercase; cursor:pointer;
-    background:var(--accent-dim); color:#0e0f08; border:1px solid var(--accent-dim); border-radius:2px;
-    transition:background .12s;
-  }
-  #cap:active{background:var(--accent)}
-  #cap:disabled{opacity:.4}
-  #cap.rec{background:var(--warn); border-color:var(--warn)}
-  #estado-linea{
-    text-align:center; color:var(--ink-dim); font-size:11px; min-height:17px; margin-top:8px;
-    font-variant-numeric:tabular-nums;
-  }
-
-  /* resultado */
-  #resultado{display:none}
-  #resultado.on{display:block}
-  .ficha{padding:14px 18px}
-  .ficha img{width:100%; border:1px solid var(--line); border-radius:2px; display:block}
-  .ficha audio{width:100%; margin-top:8px}
-  table{width:100%; border-collapse:collapse; margin-top:10px; font-size:11px}
-  td{padding:3px 0; vertical-align:top}
-  td:first-child{color:var(--ink-dim); width:38%}
-  td:last-child{color:var(--ink); word-break:break-word}
-  td .ok{color:var(--accent)}
-  td .no{color:var(--warn)}
-  .btnrow{display:flex; gap:8px; padding:0 18px 18px}
-  .btnrow button{
-    flex:1; font-family:var(--mono); font-size:12px; letter-spacing:.04em; cursor:pointer;
-    border-radius:2px; padding:10px; border:1px solid var(--line);
-    background:#12130c; color:var(--ink); transition:border-color .12s, color .12s;
-  }
-  .btnrow button:hover{border-color:var(--accent); color:var(--accent)}
-  .btnrow button.primary{background:var(--accent-dim); border-color:var(--accent-dim); color:#0e0f08; font-weight:600}
-
-  /* navegación de vistas */
   nav{display:flex; border-bottom:1px solid var(--line)}
   nav button{
-    flex:1; font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+    flex:1; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
     padding:10px; background:none; border:none; color:var(--ink-dim); cursor:pointer;
     border-bottom:2px solid transparent;
   }
   nav button.act{color:var(--accent); border-bottom-color:var(--accent)}
+  main{flex:1; max-width:640px; width:100%; margin:0 auto; display:flex; flex-direction:column}
+  .vista{display:none; flex:1; flex-direction:column}
+  .vista.on{display:flex}
 
-  /* visor / archivo */
-  #visor{display:none}
-  #visor.on{display:block}
-  #drop-json{
-    margin:14px 18px 0; border:1px dashed var(--line); border-radius:2px; padding:16px;
-    text-align:center; color:var(--ink-dim); cursor:pointer; font-size:11px;
+  button{font-family:var(--mono)}
+  .b{
+    font-size:12px; letter-spacing:.04em; cursor:pointer; border-radius:2px;
+    padding:9px 12px; border:1px solid var(--line); background:#12130c; color:var(--ink);
     transition:border-color .12s, color .12s;
   }
-  #drop-json.hot, #drop-json:active{border-color:var(--accent); color:var(--ink)}
-  #lista{padding:6px 0}
-  .item{
-    display:flex; align-items:center; gap:12px; padding:10px 18px; cursor:pointer;
-    border-bottom:1px solid var(--line);
+  .b:hover{border-color:var(--accent); color:var(--accent)}
+  .b.primario{background:var(--accent-dim); border-color:var(--accent-dim); color:#0e0f08; font-weight:600}
+  .b.primario:hover{background:var(--accent); border-color:var(--accent); color:#0e0f08}
+  .b.peligro:hover{border-color:var(--warn); color:var(--warn)}
+  .hide{display:none !important}
+  .sec-t{color:var(--ink-dim); font-size:10px; letter-spacing:.14em; text-transform:uppercase; margin-bottom:8px}
+
+  input[type=text], textarea, select{
+    width:100%; background:#12130c; color:var(--ink); border:1px solid var(--line);
+    border-radius:2px; padding:7px 8px; font-family:var(--mono); font-size:13px;
   }
+  input:focus, textarea:focus, select:focus{outline:1px solid var(--accent); border-color:var(--accent)}
+  textarea{resize:vertical; line-height:1.6}
+  input[type=range]{width:100%; accent-color:var(--accent)}
+
+  /* ===== CAMPO ===== */
+  #v-campo{position:relative}
+  #stage-campo{
+    flex:1; min-height:46vh; background:#000; position:relative;
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  #prev{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+  #cam-off{color:var(--ink-dim); font-size:11px; text-align:center; padding:24px; max-width:34ch}
+  #aj-btn{
+    position:absolute; top:10px; right:10px; z-index:2;
+    background:#16170fd0; border:1px solid var(--line); color:var(--ink);
+    border-radius:2px; width:34px; height:34px; cursor:pointer; font-size:15px;
+  }
+  #ajustes{
+    display:none; border-bottom:1px solid var(--line); background:var(--panel);
+    padding:12px 18px;
+  }
+  #ajustes.on{display:block}
+  .sw{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:6px 0; cursor:pointer}
+  .sw > span{color:var(--ink)}
+  .sw small{display:block; color:var(--ink-dim); font-size:10px}
+  .tog{flex:none; width:38px; height:20px; border:1px solid var(--line); border-radius:2px; background:#12130c; position:relative}
+  .tog::after{content:''; position:absolute; top:2px; left:2px; width:14px; height:14px; background:var(--ink-dim); border-radius:2px; transition:left .12s, background .12s}
+  .sw input{display:none}
+  .sw input:checked + .tog{border-color:var(--accent-dim)}
+  .sw input:checked + .tog::after{left:20px; background:var(--accent)}
+  .inline{display:flex; align-items:center; gap:10px}
+  .val{color:var(--accent); font-variant-numeric:tabular-nums; min-width:3ch; text-align:right}
+  #zona-cap{padding:14px 18px 18px}
+  #cap{
+    width:100%; padding:16px; font-size:14px; font-weight:600; letter-spacing:.14em;
+    text-transform:uppercase; cursor:pointer; border-radius:2px;
+    background:var(--accent-dim); color:#0e0f08; border:1px solid var(--accent-dim);
+  }
+  #cap:active{background:var(--accent)}
+  #cap:disabled{opacity:.4}
+  #cap.rec{background:var(--warn); border-color:var(--warn)}
+  #estado-linea{text-align:center; color:var(--ink-dim); font-size:11px; min-height:17px; margin-top:8px; font-variant-numeric:tabular-nums}
+
+  /* ===== CONFIRMACIÓN ===== */
+  #v-confirm{padding:16px 18px; gap:12px}
+  #conf-thumb{width:100%; max-height:34vh; object-fit:contain; border:1px solid var(--line); border-radius:2px; background:#000}
+  .chips{display:flex; flex-wrap:wrap; gap:6px}
+  .chip{
+    border:1px solid var(--line); color:var(--ink-dim); border-radius:2px;
+    padding:3px 9px; font-size:11px; cursor:pointer; user-select:none;
+  }
+  .chip.sel{border-color:var(--accent-dim); color:var(--accent)}
+  .chip .x{margin-left:6px; opacity:.7}
+  .fila-botones{display:flex; gap:8px}
+  .fila-botones .b{flex:1}
+
+  /* ===== CUADERNO (lista) ===== */
+  #v-cuaderno{padding-bottom:16px}
+  #filtros{display:flex; gap:8px; padding:12px 18px 0; align-items:center}
+  #filtros select{flex:1}
+  #filtro-pend{white-space:nowrap; flex:none}
+  #filtro-pend.act{border-color:var(--accent); color:var(--accent)}
+  .jornada-h{padding:12px 18px 2px; color:var(--accent); font-size:11px; letter-spacing:.12em; font-variant-numeric:tabular-nums}
+  .item{display:flex; align-items:center; gap:10px; padding:10px 18px; cursor:pointer; border-bottom:1px solid var(--line)}
   .item:hover{background:#1a1b12}
+  .item .dot{flex:none; color:var(--ink-dim)}
+  .item .dot.si{color:var(--accent)}
   .item .cuando{color:var(--ink); font-variant-numeric:tabular-nums}
-  .item .que{color:var(--ink-dim); font-size:10px; margin-top:1px}
+  .item .que{color:var(--ink-dim); font-size:10px}
   .item .peso{margin-left:auto; color:var(--ink-dim); font-size:10px; font-variant-numeric:tabular-nums; flex:none}
   .vacio{padding:24px 18px; color:var(--ink-dim); text-align:center; font-size:11px}
+  #herramientas{margin:14px 18px 0; border:1px solid var(--line); border-radius:2px}
+  #herramientas summary{padding:10px 12px; cursor:pointer; color:var(--ink-dim); font-size:11px; letter-spacing:.1em; text-transform:uppercase}
+  #herr-cuerpo{padding:0 12px 12px; display:flex; flex-direction:column; gap:8px}
+  #drop-json{
+    border:1px dashed var(--line); border-radius:2px; padding:14px; text-align:center;
+    color:var(--ink-dim); cursor:pointer; font-size:11px;
+  }
+  #drop-json.hot{border-color:var(--accent); color:var(--ink)}
 
-  /* nota de campo y edición */
-  textarea, input[type=text]{
-    width:100%; background:#12130c; color:var(--ink); border:1px solid var(--line);
-    border-radius:2px; padding:7px 8px; font-family:var(--mono); font-size:12px;
+  /* ===== FICHA ===== */
+  #v-ficha{padding:0 18px 20px; gap:12px}
+  #f-top{display:flex; align-items:center; gap:10px; padding:12px 0 0}
+  #f-top .cuando{color:var(--ink-dim); font-size:11px; font-variant-numeric:tabular-nums}
+  #f-foto{width:100%; border:1px solid var(--line); border-radius:2px; display:block; cursor:pointer}
+  #f-foto-vacia{
+    border:1px dashed var(--line); border-radius:2px; padding:22px; text-align:center;
+    color:var(--ink-dim); cursor:pointer; font-size:11px;
   }
-  textarea{min-height:64px; resize:vertical; line-height:1.5}
-  textarea:focus, input[type=text]:focus{outline:1px solid var(--accent); border-color:var(--accent)}
-  .campo-l{display:block; color:var(--ink-dim); font-size:11px; margin:10px 0 4px}
-  .campo-l:first-child{margin-top:0}
-  .chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
-  .chip{
-    border:1px solid var(--accent-dim); color:var(--accent); border-radius:2px;
-    padding:1px 7px; font-size:10px; letter-spacing:.04em;
-  }
-  .nota-txt{color:var(--ink); white-space:pre-wrap; margin-top:10px; padding:10px;
-    background:#12130c; border:1px solid var(--line); border-radius:2px}
-  .media-l{color:var(--ink-dim); font-size:10px; letter-spacing:.1em; text-transform:uppercase;
-    margin:12px 0 4px}
-  #edicion{display:none; padding:0 18px 14px}
-  #edicion.on{display:block}
-  #vz-controles{display:flex; gap:8px; margin-top:6px; flex-wrap:wrap}
-  #vz-controles button{
-    font-family:var(--mono); font-size:11px; cursor:pointer; border-radius:2px;
-    padding:7px 10px; border:1px solid var(--line); background:#12130c; color:var(--ink);
-  }
-  #vz-controles button:hover{border-color:var(--accent); color:var(--accent)}
-  #vz-controles button.rec{background:var(--warn); border-color:var(--warn); color:#0e0f08}
+  .media-l{color:var(--ink-dim); font-size:10px; letter-spacing:.1em; text-transform:uppercase; margin-bottom:4px}
+  audio{width:100%}
+  #f-nota{min-height:130px}
+  #f-guardado{color:var(--ink-dim); font-size:10px; text-align:right; min-height:14px; margin-top:2px}
+  #f-recientes .chip{opacity:.75}
+  #f-voz-fila{display:flex; gap:8px; align-items:center}
+  #f-voz-fila .b{flex:none}
+  #f-voz-fila audio{flex:1; min-width:0}
+  .b.rec{background:var(--warn); border-color:var(--warn); color:#0e0f08}
+  #f-datos{border:1px solid var(--line); border-radius:2px}
+  #f-datos summary{padding:9px 12px; cursor:pointer; color:var(--ink-dim); font-size:11px; letter-spacing:.1em; text-transform:uppercase}
+  table{width:100%; border-collapse:collapse; font-size:11px}
+  td{padding:3px 12px; vertical-align:top}
+  td:first-child{color:var(--ink-dim); width:38%}
+  td:last-child{color:var(--ink); word-break:break-word}
+  td .ok{color:var(--accent)} td .no{color:var(--warn)}
 
-  /* jornadas y filtro */
-  .jornada-h{
-    padding:10px 18px 4px; color:var(--accent); font-size:11px; letter-spacing:.12em;
-    font-variant-numeric:tabular-nums;
+  /* hoja de exportación */
+  #hoja-fondo{position:fixed; inset:0; background:#000a; z-index:40; display:none}
+  #hoja-fondo.on{display:block}
+  #hoja{
+    position:fixed; left:0; right:0; bottom:0; z-index:41; display:none;
+    background:var(--panel); border-top:1px solid var(--line);
+    padding:14px 18px calc(14px + env(safe-area-inset-bottom));
+    max-width:640px; margin:0 auto;
   }
-  #filtro-wrap{padding:10px 18px 0}
-  #extraer{flex-wrap:wrap}
-  #extraer button{flex:1 1 30%}
+  #hoja.on{display:block}
+  #hoja .b{width:100%; margin-bottom:8px; text-align:left}
 
   /* croquis */
-  #croquis-capa{
-    position:fixed; inset:0; background:var(--bg); z-index:50;
-    display:none; flex-direction:column;
-  }
+  #croquis-capa{position:fixed; inset:0; background:var(--bg); z-index:50; display:none; flex-direction:column}
   #croquis-capa.on{display:flex}
-  #cq-barra{
-    display:flex; gap:8px; align-items:center; padding:10px 14px;
-    border-bottom:1px solid var(--line); flex-wrap:wrap;
-  }
-  .cq-color{
-    width:26px; height:26px; border-radius:2px; border:1px solid var(--line); cursor:pointer;
-    flex:none;
-  }
+  #cq-barra{display:flex; gap:8px; align-items:center; padding:10px 14px; border-bottom:1px solid var(--line); flex-wrap:wrap}
+  .cq-color{width:26px; height:26px; border-radius:2px; border:1px solid var(--line); cursor:pointer; flex:none}
   .cq-color.act{outline:2px solid var(--ink); outline-offset:1px}
-  #cq-barra button{
-    font-family:var(--mono); font-size:11px; cursor:pointer; border-radius:2px;
-    padding:6px 9px; border:1px solid var(--line); background:#12130c; color:var(--ink);
-  }
+  #cq-barra button{font-size:11px; cursor:pointer; border-radius:2px; padding:6px 9px; border:1px solid var(--line); background:#12130c; color:var(--ink)}
   #cq-barra button.act{border-color:var(--accent); color:var(--accent)}
   #cq-lienzo-wrap{flex:1; display:flex; align-items:center; justify-content:center; overflow:hidden; padding:10px}
   #cq-lienzo{touch-action:none; box-shadow:0 1px 0 #0006, 0 8px 30px #0008; max-width:100%; max-height:100%}
@@ -204,125 +186,139 @@
 <body>
   <header>
     <h1 id="titulo">CUADERNX</h1>
-    <p>cuaderno de campo · momentos en JSON</p>
+    <p>cuaderno de campo</p>
   </header>
-
   <nav>
-    <button id="nav-cap" class="act">capturar</button>
-    <button id="nav-arc">archivo</button>
+    <button id="nav-campo">campo</button>
+    <button id="nav-cuaderno">cuaderno</button>
   </nav>
 
   <main>
-    <!-- composición del momento -->
-    <div id="config">
-      <section>
-        <div class="sec-t">Sensores · siempre que el dispositivo los dé</div>
-        <label class="sw"><span>movimiento y orientación<small>acelerómetro · giroscopio · brújula · 1 s de muestras</small></span>
-          <input type="checkbox" id="t-mov" checked><span class="tog"></span></label>
-        <label class="sw"><span>posición<small>GPS · lat/lon/altitud/precisión</small></span>
-          <input type="checkbox" id="t-pos" checked><span class="tog"></span></label>
-      </section>
-
-      <section>
-        <div class="sec-t">Media · qué incluye el momento</div>
-        <label class="sw"><span>foto<small>un cuadro de la cámara, JPEG embebido</small></span>
+    <!-- ===== CAMPO ===== -->
+    <div class="vista" id="v-campo">
+      <div id="ajustes">
+        <div class="sec-t">Ajustes · se recuerdan</div>
+        <label class="sw"><span>movimiento y orientación<small>acelerómetro · brújula · 1 s</small></span>
+          <input type="checkbox" id="t-mov"><span class="tog"></span></label>
+        <label class="sw"><span>posición<small>GPS</small></span>
+          <input type="checkbox" id="t-pos"><span class="tog"></span></label>
+        <label class="sw"><span>foto<small>cámara, JPEG en el JSON</small></span>
           <input type="checkbox" id="t-foto"><span class="tog"></span></label>
-        <div id="foto-opts" class="sub hide">
-          <div class="selrow">
-            <select id="camara">
-              <option value="environment">cámara trasera</option>
-              <option value="user">cámara frontal</option>
-            </select>
-          </div>
-          <div id="prev-wrap"><video id="prev" autoplay playsinline muted></video></div>
-        </div>
-        <label class="sw"><span>audio<small>clip embebido, AAC en Safari</small></span>
+        <label class="sw"><span>sonido ambiente<small>clip al capturar</small></span>
           <input type="checkbox" id="t-audio"><span class="tog"></span></label>
-        <div id="audio-opts" class="sub hide">
-          <div class="inline"><span style="color:var(--ink-dim);font-size:11px">duración</span>
-            <input type="range" id="dur" min="2" max="15" value="5"><span class="val"><span id="dur-v">5</span>s</span>
-          </div>
+        <div class="inline" style="margin-top:4px">
+          <span style="color:var(--ink-dim);font-size:11px;white-space:nowrap">duración</span>
+          <input type="range" id="dur" min="2" max="15" value="5">
+          <span class="val"><span id="dur-v">5</span>s</span>
         </div>
-      </section>
-
-      <section>
-        <div class="sec-t">Nota de campo · opcional</div>
-        <label class="campo-l" for="nota-in">texto</label>
-        <textarea id="nota-in" placeholder="observación, contexto, lo que la foto no dice…"></textarea>
-        <label class="campo-l" for="tags-in">etiquetas · separadas por comas</label>
-        <input type="text" id="tags-in" placeholder="feria, palermo, comida">
-      </section>
-
-      <div id="cap-zone">
+        <div class="inline" style="margin-top:8px">
+          <select id="camara">
+            <option value="environment">cámara trasera</option>
+            <option value="user">cámara frontal</option>
+          </select>
+        </div>
+      </div>
+      <div id="stage-campo">
+        <video id="prev" autoplay playsinline muted class="hide"></video>
+        <div id="cam-off">cámara desactivada — actívala en ajustes, o captura solo sensores</div>
+        <button id="aj-btn" aria-label="Ajustes">⚙</button>
+      </div>
+      <div id="zona-cap">
         <button id="cap">● capturar momento</button>
         <div id="estado-linea"></div>
       </div>
     </div>
 
-    <!-- resultado -->
-    <div id="resultado">
-      <div class="ficha">
-        <div class="sec-t">Momento capturado</div>
-        <img id="r-foto" class="hide" alt="Foto del momento">
-        <div id="r-nota" class="nota-txt hide"></div>
-        <div id="r-chips" class="chips hide"></div>
-        <div id="l-audio" class="media-l hide">sonido ambiente</div>
-        <audio id="r-audio" class="hide" controls></audio>
-        <div id="l-voz" class="media-l hide">nota de voz</div>
-        <audio id="r-voz" class="hide" controls></audio>
-        <table id="r-tabla"></table>
+    <!-- ===== CONFIRMACIÓN ===== -->
+    <div class="vista" id="v-confirm">
+      <img id="conf-thumb" class="hide" alt="Momento capturado">
+      <div>
+        <input type="text" id="jot" placeholder="apunte rápido…">
       </div>
-      <div id="edicion">
-        <div class="sec-t">Editar</div>
-        <label class="campo-l" for="ed-nota">texto</label>
-        <textarea id="ed-nota"></textarea>
-        <label class="campo-l" for="ed-tags">etiquetas · separadas por comas</label>
-        <input type="text" id="ed-tags">
-        <div class="campo-l">nota de voz</div>
-        <div id="vz-controles">
-          <button id="vz-grabar">● grabar</button>
-          <button id="vz-adjuntar">adjuntar archivo</button>
-          <button id="vz-quitar" class="hide">quitar actual</button>
-        </div>
-        <input type="file" id="vz-file" accept="audio/*" class="hide">
-        <div class="btnrow" style="padding:14px 0 0">
-          <button id="ed-guardar" class="primary">guardar cambios</button>
-          <button id="ed-cancelar">cancelar</button>
-        </div>
+      <div>
+        <div class="sec-t">Etiquetas</div>
+        <div class="chips" id="conf-chips"></div>
+        <input type="text" id="conf-nueva" placeholder="nueva etiqueta ⏎" style="margin-top:8px">
       </div>
-      <div class="btnrow">
-        <button id="exportar" class="primary">exportar JSON</button>
-        <button id="compartir">compartir</button>
-        <button id="editar">editar</button>
-        <button id="otra">nueva captura</button>
-      </div>
-      <div class="btnrow" id="extraer" style="padding-top:0">
-        <button id="sacar-foto" class="hide">guardar foto</button>
-        <button id="sacar-sello" class="hide">foto+datos</button>
-        <button id="sacar-mapa" class="hide">guardar mapa</button>
-        <button id="sacar-md">exportar MD</button>
-        <button id="croquis-btn">croquis</button>
-        <button id="sacar-audio" class="hide">guardar audio</button>
-        <button id="sacar-voz" class="hide">guardar voz</button>
-        <button id="borrar" class="hide">borrar de memoria</button>
+      <div class="fila-botones">
+        <button class="b primario" id="conf-listo">listo</button>
+        <button class="b peligro" id="conf-descartar">descartar</button>
       </div>
     </div>
 
-    <!-- archivo / visor -->
-    <div id="visor">
-      <div id="drop-json">suelta un .json de cuadernx aquí (momento o respaldo), o toca para elegir</div>
-      <input type="file" id="file-json" accept="application/json,.json" class="hide">
-      <div class="sec-t" style="padding:14px 18px 0">Memoria corta · este navegador</div>
-      <div id="filtro-wrap" class="hide">
+    <!-- ===== CUADERNO ===== -->
+    <div class="vista" id="v-cuaderno">
+      <div id="filtros" class="hide">
         <select id="filtro-tag"><option value="">todas las etiquetas</option></select>
+        <button class="b" id="filtro-pend">○ sin anotar</button>
       </div>
       <div id="lista"></div>
-      <div class="btnrow" style="padding-top:6px">
-        <button id="exportar-todo">exportar todo · respaldo</button>
-        <button id="cuaderno-md">cuaderno MD</button>
+      <details id="herramientas">
+        <summary>herramientas</summary>
+        <div id="herr-cuerpo">
+          <div id="drop-json">suelta un .json de cuadernx (momento o respaldo), o toca para elegir</div>
+          <input type="file" id="file-json" accept="application/json,.json" class="hide">
+          <button class="b" id="exportar-todo">exportar todo · respaldo</button>
+          <button class="b" id="cuaderno-md">cuaderno MD</button>
+        </div>
+      </details>
+    </div>
+
+    <!-- ===== FICHA ===== -->
+    <div class="vista" id="v-ficha">
+      <div id="f-top">
+        <button class="b" id="f-volver">← cuaderno</button>
+        <span class="cuando" id="f-cuando"></span>
+      </div>
+      <img id="f-foto" class="hide" alt="Foto del momento — tocar para croquis">
+      <div id="f-foto-vacia" class="hide">✎ croquis en lienzo</div>
+      <div id="f-amb" class="hide">
+        <div class="media-l">escuchar el momento</div>
+        <audio id="f-amb-audio" controls></audio>
+      </div>
+      <div>
+        <textarea id="f-nota" placeholder="nota expandida — descripción densa, contexto, interpretación…"></textarea>
+        <div id="f-guardado"></div>
+      </div>
+      <div>
+        <div class="sec-t">Etiquetas</div>
+        <div class="chips" id="f-chips"></div>
+        <div class="chips" id="f-recientes" style="margin-top:6px"></div>
+        <input type="text" id="f-nueva" placeholder="nueva etiqueta ⏎" style="margin-top:8px">
+      </div>
+      <div>
+        <div class="media-l">nota de voz</div>
+        <div id="f-voz-fila">
+          <button class="b" id="f-voz-grabar">● grabar</button>
+          <button class="b" id="f-voz-adjuntar">adjuntar</button>
+          <audio id="f-voz-audio" controls class="hide"></audio>
+          <button class="b hide" id="f-voz-quitar">✕</button>
+        </div>
+        <input type="file" id="f-voz-file" accept="audio/*" class="hide">
+      </div>
+      <details id="f-datos">
+        <summary>datos del momento</summary>
+        <table id="r-tabla"></table>
+      </details>
+      <div class="fila-botones">
+        <button class="b primario" id="f-exportar">exportar</button>
       </div>
     </div>
   </main>
+
+  <!-- hoja de exportación -->
+  <div id="hoja-fondo"></div>
+  <div id="hoja">
+    <button class="b" id="h-json">exportar JSON</button>
+    <button class="b" id="h-compartir">compartir (Drive vía share sheet)</button>
+    <button class="b" id="h-md">exportar Markdown</button>
+    <button class="b" id="h-foto">guardar foto original</button>
+    <button class="b" id="h-sello">guardar foto+datos (con croquis)</button>
+    <button class="b" id="h-mapa">guardar mapa</button>
+    <button class="b" id="h-voz">guardar nota de voz</button>
+    <button class="b peligro" id="h-borrar">borrar de memoria</button>
+    <button class="b" id="h-cerrar">cerrar</button>
+  </div>
 
   <!-- croquis -->
   <div id="croquis-capa">
@@ -345,8 +341,17 @@
 <script>
 'use strict';
 // ============================================================
-// CAPTURA — núcleo puro (sin DOM). Testeado en Node.
+// CUADERNX — núcleo puro (testeado en Node, inyectado literal)
 // ============================================================
+'use strict';
+// ============================================================
+// CAPTURA — núcleo puro (sin DOM). Testeable en Node.
+// Se inyecta verbatim en el HTML.
+// ============================================================
+
+// ---------- estadísticas de muestras de movimiento ----------
+// muestras: [{t, ax, ay, az, agx, agy, agz, rx, ry, rz}, ...]
+// (a* = aceleración sin gravedad, ag* = con gravedad, r* = rotationRate)
 function resumenEje(valores) {
   const v = valores.filter((x) => typeof x === 'number' && isFinite(x));
   if (!v.length) return null;
@@ -369,6 +374,7 @@ function resumenMovimiento(muestras) {
     const s = resumenEje(muestras.map((m) => m[e]));
     if (s) out.ejes[e] = s;
   }
+  // magnitud de aceleración (sin gravedad) como señal de "agitación" del momento
   const mags = muestras
     .filter((m) => [m.ax, m.ay, m.az].every((x) => typeof x === 'number' && isFinite(x)))
     .map((m) => Math.sqrt(m.ax * m.ax + m.ay * m.ay + m.az * m.az));
@@ -377,22 +383,28 @@ function resumenMovimiento(muestras) {
   return out;
 }
 
+// ---------- ensamblado del momento ----------
+// partes: objeto con secciones opcionales; null/undefined se omiten.
 function ensamblarMomento(partes) {
   const m = { formato: 'cuadernx/1', creado: partes.creadoISO || null };
   const secciones = ['meta', 'posicion', 'orientacion', 'movimiento', 'pantalla', 'nota', 'etiquetas', 'media'];
   for (const s of secciones) {
     if (partes[s] !== null && partes[s] !== undefined) m[s] = partes[s];
   }
+  // registro de qué se pidió y qué se obtuvo (honestidad del artefacto)
   if (partes.estado) m.estado = partes.estado;
   return m;
 }
 
+// ---------- nombre de archivo ----------
+// captura_YYYYMMDD_HHMMSS.json a partir de un Date
 function nombreArchivo(fecha) {
   const p = (n) => String(n).padStart(2, '0');
   return 'cuadernx_' + fecha.getFullYear() + p(fecha.getMonth() + 1) + p(fecha.getDate()) +
     '_' + p(fecha.getHours()) + p(fecha.getMinutes()) + p(fecha.getSeconds()) + '.json';
 }
 
+// ---------- tamaño legible ----------
 function tamanoLegible(bytes) {
   if (!isFinite(bytes) || bytes < 0) return '—';
   if (bytes < 1024) return bytes + ' B';
@@ -400,6 +412,7 @@ function tamanoLegible(bytes) {
   return (bytes / 1048576).toFixed(2) + ' MB';
 }
 
+// ---------- escalar dimensiones conservando proporción ----------
 function escalarDimensiones(w, h, maxLado) {
   if (!(w > 0) || !(h > 0)) return { w: 0, h: 0 };
   const mayor = Math.max(w, h);
@@ -408,6 +421,7 @@ function escalarDimensiones(w, h, maxLado) {
   return { w: Math.round(w * f), h: Math.round(h * f) };
 }
 
+// ---------- extensión de archivo desde MIME ----------
 function extensionDeMime(mime) {
   if (!mime) return 'bin';
   const base = String(mime).split(';')[0].trim();
@@ -419,12 +433,14 @@ function extensionDeMime(mime) {
   return mapa[base] || (base.split('/')[1] || 'bin');
 }
 
+// ---------- sello de datos sobre la foto ----------
 function cardinalDe(deg) {
   if (typeof deg !== 'number' || !isFinite(deg)) return null;
   const pts = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
   return pts[Math.round((((deg % 360) + 360) % 360) / 45) % 8];
 }
 
+// "DD.MM.YYYY HH:MM:SS" en la zona horaria dada (o la local si falta)
 function fechaSello(iso, tz) {
   const d = new Date(iso);
   if (isNaN(d)) return null;
@@ -440,6 +456,7 @@ function fechaSello(iso, tz) {
   } catch (_) { return d.toISOString(); }
 }
 
+// líneas del sello a partir del momento; solo lo que existe
 function lineasSello(mo) {
   const L = [];
   const f = fechaSello(mo.creado, mo.meta && mo.meta.zonaHoraria);
@@ -467,6 +484,7 @@ function lineasSello(mo) {
   return L;
 }
 
+// ---------- etiquetas ----------
 function parseEtiquetas(texto) {
   if (!texto) return [];
   const vistas = new Set(), out = [];
@@ -483,6 +501,9 @@ function textoEtiquetas(arr) {
   return (arr || []).join(', ');
 }
 
+// ---------- edición de un momento (pura: devuelve copia) ----------
+// cambios: { nota?: string, etiquetas?: string[], notaVoz?: obj|null }
+//   notaVoz === null quita la nota de voz; undefined la deja como está.
 function aplicarEdicion(mo, cambios, isoAhora) {
   const out = JSON.parse(JSON.stringify(mo));
   if ('nota' in cambios) {
@@ -515,6 +536,8 @@ function aplicarEdicion(mo, cambios, isoAhora) {
   return out;
 }
 
+// ---------- slippy map (OSM) ----------
+// lat/lon -> coordenadas de tesela (fraccionales; floor = tesela, resto = píxel)
 function teselaDe(lat, lon, z) {
   const n = Math.pow(2, z);
   const latR = lat * Math.PI / 180;
@@ -524,16 +547,18 @@ function teselaDe(lat, lon, z) {
   };
 }
 
+// ---------- jornadas ----------
 function jornadaDe(iso, tz) {
   const d = new Date(iso);
   if (isNaN(d)) return null;
   try {
     const fmt = new Intl.DateTimeFormat('sv', { timeZone: tz || undefined,
-      year: 'numeric', month: '2-digit', day: '2-digit' });
+      year: 'numeric', month: '2-digit', day: '2-digit' }); // sv = YYYY-MM-DD
     return fmt.format(d);
   } catch (_) { return iso.slice(0, 10); }
 }
 
+// items: [{creado, tz?, ...}] -> [{jornada, items:[...]}] en orden de llegada
 function agruparPorJornada(items) {
   const grupos = [], idx = new Map();
   for (const it of items) {
@@ -544,6 +569,7 @@ function agruparPorJornada(items) {
   return grupos;
 }
 
+// ---------- markdown ----------
 function mdDeMomento(mo, opts) {
   opts = opts || {};
   const L = [];
@@ -586,31 +612,34 @@ function mdDeCuaderno(momentos, opts) {
   return L.join('\n');
 }
 
+// ---------- cifrado de respaldo (WebCrypto: navegador y Node 20+) ----------
 function _abAB64(buf) {
   const b = new Uint8Array(buf); let s = '';
   for (let i = 0; i < b.length; i += 0x8000) {
     s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000));
   }
-  return btoa(s);
+  return (typeof btoa !== 'undefined') ? btoa(s) : Buffer.from(b).toString('base64');
 }
 function _b64AAb(b64) {
-  const bin = atob(b64);
+  const bin = (typeof atob !== 'undefined') ? atob(b64) : Buffer.from(b64, 'base64').toString('binary');
   const b = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i);
   return b;
 }
 async function _claveDe(frase, salt, iter) {
-  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(frase), 'PBKDF2', false, ['deriveKey']);
-  return crypto.subtle.deriveKey(
+  const cr = (typeof crypto !== 'undefined') ? crypto : require('crypto').webcrypto;
+  const base = await cr.subtle.importKey('raw', new TextEncoder().encode(frase), 'PBKDF2', false, ['deriveKey']);
+  return cr.subtle.deriveKey(
     { name: 'PBKDF2', salt: salt, iterations: iter, hash: 'SHA-256' },
     base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
 }
 async function cifrarRespaldo(textoJSON, frase) {
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const cr = (typeof crypto !== 'undefined') ? crypto : require('crypto').webcrypto;
+  const salt = cr.getRandomValues(new Uint8Array(16));
+  const iv = cr.getRandomValues(new Uint8Array(12));
   const iter = 250000;
   const clave = await _claveDe(frase, salt, iter);
-  const cifrado = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, clave,
+  const cifrado = await cr.subtle.encrypt({ name: 'AES-GCM', iv: iv }, clave,
     new TextEncoder().encode(textoJSON));
   return {
     formato: 'cuadernx-respaldo-cifrado/1',
@@ -620,45 +649,114 @@ async function cifrarRespaldo(textoJSON, frase) {
   };
 }
 async function descifrarRespaldo(obj, frase) {
+  const cr = (typeof crypto !== 'undefined') ? crypto : require('crypto').webcrypto;
   const clave = await _claveDe(frase, _b64AAb(obj.kdf.salt), obj.kdf.iteraciones);
-  const plano = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: _b64AAb(obj.iv) }, clave, _b64AAb(obj.datos));
+  const plano = await cr.subtle.decrypt({ name: 'AES-GCM', iv: _b64AAb(obj.iv) }, clave, _b64AAb(obj.datos));
   return new TextDecoder().decode(plano);
 }
 
+// ---------- estado derivado: ¿está anotado? ----------
+// anotado = nota expandida (> umbral), o nota de voz, o croquis. Nunca manual.
+function esAnotado(mo, umbral) {
+  umbral = umbral || 80;
+  if (mo.nota && mo.nota.length > umbral) return true;
+  const m = mo.media || {};
+  return !!(m.notaVoz || m.croquis);
+}
+
+// ---------- etiquetas recientes ----------
+// items: [{creado, etiquetas}] -> hasta `max` etiquetas, más recientes primero, sin repetir
+function etiquetasRecientes(items, max) {
+  max = max || 10;
+  const orden = items.slice().sort((a, b) => String(b.creado).localeCompare(String(a.creado)));
+  const vistas = new Set(), out = [];
+  for (const it of orden) {
+    for (const t of (it.etiquetas || [])) {
+      const k = t.toLowerCase();
+      if (vistas.has(k)) continue;
+      vistas.add(k); out.push(t);
+      if (out.length >= max) return out;
+    }
+  }
+  return out;
+}
 // ============================================================
-// HILO PRINCIPAL — DOM, permisos, sensores
+// HILO PRINCIPAL — UI de dos momentos: campo y cuaderno
 // ============================================================
 (function(){
   const $ = (id) => document.getElementById(id);
   const linea = $('estado-linea');
-  const VENTANA_MOV_MS = 1000;
+  const VENTANA_MOV_MS = 1000, FOTO_MAX_LADO = 2048;
 
   $('titulo').addEventListener('click', () => location.reload());
 
-  // ---------- estado de UI ----------
-  let streamCam = null;      // MediaStream de cámara (previsualización)
-  let momento = null;        // último momento ensamblado
-  let capturando = false;
+  // ---------- preferencias (localStorage: configuración, no datos de campo) ----------
+  const PREFS_DEF = { mov:true, pos:true, foto:true, audio:false, dur:5, camara:'environment', pestana:'campo' };
+  let PREFS = PREFS_DEF;
+  try{
+    const g = localStorage.getItem('cuadernx-prefs');
+    if(g) PREFS = Object.assign({}, PREFS_DEF, JSON.parse(g));
+  }catch(_){ }
+  function guardarPrefs(){
+    try{ localStorage.setItem('cuadernx-prefs', JSON.stringify(PREFS)); }catch(_){ }
+  }
+  function volcarPrefsAUI(){
+    $('t-mov').checked = PREFS.mov; $('t-pos').checked = PREFS.pos;
+    $('t-foto').checked = PREFS.foto; $('t-audio').checked = PREFS.audio;
+    $('dur').value = PREFS.dur; $('dur-v').textContent = PREFS.dur;
+    $('camara').value = PREFS.camara;
+  }
+  function leerPrefsDeUI(){
+    PREFS.mov = $('t-mov').checked; PREFS.pos = $('t-pos').checked;
+    PREFS.foto = $('t-foto').checked; PREFS.audio = $('t-audio').checked;
+    PREFS.dur = +$('dur').value; PREFS.camara = $('camara').value;
+    guardarPrefs();
+  }
+  ['t-mov','t-pos','t-audio','dur','camara'].forEach((id) => {
+    $(id).addEventListener('change', leerPrefsDeUI);
+    $(id).addEventListener('input', () => { $('dur-v').textContent = $('dur').value; });
+  });
+  $('t-foto').addEventListener('change', async () => {
+    leerPrefsDeUI();
+    if(PREFS.foto) await encenderCamara(); else apagarCamara();
+  });
+  $('camara').addEventListener('change', () => { if(PREFS.foto) encenderCamara(); });
+  $('aj-btn').addEventListener('click', () => $('ajustes').classList.toggle('on'));
 
-  $('dur').addEventListener('input', () => { $('dur-v').textContent = $('dur').value; });
+  // ---------- navegación ----------
+  let momento = null;
+  function verVista(v){
+    ['v-campo','v-confirm','v-cuaderno','v-ficha'].forEach((id) =>
+      $(id).classList.toggle('on', id === 'v-' + v));
+    $('nav-campo').classList.toggle('act', v === 'campo' || v === 'confirm');
+    $('nav-cuaderno').classList.toggle('act', v === 'cuaderno' || v === 'ficha');
+    if(v === 'campo'){ if(PREFS.foto) encenderCamara(); }
+    else apagarCamara();
+    if(v === 'campo' || v === 'cuaderno'){ PREFS.pestana = v; guardarPrefs(); }
+  }
+  $('nav-campo').addEventListener('click', () => verVista('campo'));
+  $('nav-cuaderno').addEventListener('click', () => { verVista('cuaderno'); pintarLista(); });
 
-  // ---------- cámara: encender/apagar con el toggle ----------
+  // ---------- cámara ----------
+  let streamCam = null;
   async function encenderCamara(){
     apagarCamara();
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      $('cam-off').textContent = 'cámara no disponible en este navegador';
+      $('prev').classList.add('hide'); $('cam-off').classList.remove('hide');
+      return false;
+    }
     try{
-      // se pide resolución alta como "ideal": la cámara da lo máximo que pueda
-      // sin fallar si no llega (ideal no es exact).
       streamCam = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: $('camara').value,
-          width: { ideal: 4032 }, height: { ideal: 3024 },
-        }, audio: false
+        video: { facingMode: PREFS.camara, width: { ideal: 4032 }, height: { ideal: 3024 } },
+        audio: false
       });
       $('prev').srcObject = streamCam;
+      $('prev').classList.remove('hide'); $('cam-off').classList.add('hide');
       return true;
     }catch(err){
-      linea.textContent = 'cámara: ' + traducirError(err);
-      $('t-foto').checked = false; $('foto-opts').classList.add('hide');
+      $('cam-off').textContent = 'cámara: ' + traducirError(err) + ' — revisa ajustes';
+      $('prev').classList.add('hide'); $('cam-off').classList.remove('hide');
       return false;
     }
   }
@@ -666,15 +764,6 @@ async function descifrarRespaldo(obj, frase) {
     if(streamCam){ streamCam.getTracks().forEach(t => t.stop()); streamCam = null; }
     $('prev').srcObject = null;
   }
-  $('t-foto').addEventListener('change', async (e) => {
-    $('foto-opts').classList.toggle('hide', !e.target.checked);
-    if(e.target.checked) await encenderCamara(); else apagarCamara();
-  });
-  $('camara').addEventListener('change', () => { if($('t-foto').checked) encenderCamara(); });
-  $('t-audio').addEventListener('change', (e) => {
-    $('audio-opts').classList.toggle('hide', !e.target.checked);
-  });
-
   function traducirError(err){
     const n = err && err.name;
     if(n === 'NotAllowedError') return 'permiso denegado';
@@ -683,11 +772,8 @@ async function descifrarRespaldo(obj, frase) {
     return String(n || err);
   }
 
-  // ---------- fuentes de datos ----------
-  // Cada fuente devuelve {dato, estado}. Nunca lanza: el momento se ensambla con lo que haya.
-
+  // ---------- fuentes de datos (idénticas a lo ya probado en campo) ----------
   async function pedirPermisoMovimiento(){
-    // iOS 13+: requestPermission debe llamarse dentro del gesto del usuario
     try{
       if(typeof DeviceMotionEvent !== 'undefined' &&
          typeof DeviceMotionEvent.requestPermission === 'function'){
@@ -697,7 +783,7 @@ async function descifrarRespaldo(obj, frase) {
       return typeof DeviceMotionEvent !== 'undefined';
     }catch(_){ return false; }
   }
-
+  function red(n){ return typeof n === 'number' ? Math.round(n * 100) / 100 : n; }
   function capturarMovimiento(ms){
     return new Promise((resolve) => {
       const muestras = [];
@@ -713,19 +799,16 @@ async function descifrarRespaldo(obj, frase) {
         });
       };
       const onOri = (e) => {
-        // no pisar una lectura absoluta con una relativa posterior
         if(ultimaOri && ultimaOri.absoluta && !e.absolute && e.type !== 'deviceorientationabsolute') return;
         ultimaOri = {
           alpha: red(e.alpha), beta: red(e.beta), gamma: red(e.gamma),
           absoluta: !!e.absolute || e.type === 'deviceorientationabsolute',
         };
         if(typeof e.webkitCompassHeading === 'number'){
-          // iOS/WebKit: rumbo de brújula directo
           ultimaOri.brujula = red(e.webkitCompassHeading);
           ultimaOri.brujulaFuente = 'webkit';
           if(typeof e.webkitCompassAccuracy === 'number') ultimaOri.brujulaPrecision = red(e.webkitCompassAccuracy);
         } else if(ultimaOri.absoluta && typeof e.alpha === 'number'){
-          // Android/Chrome: alpha absoluto -> rumbo aproximado (pantalla hacia arriba)
           ultimaOri.brujula = red((360 - e.alpha) % 360);
           ultimaOri.brujulaFuente = 'alpha-absoluta';
         }
@@ -741,8 +824,6 @@ async function descifrarRespaldo(obj, frase) {
       }, ms);
     });
   }
-  function red(n){ return typeof n === 'number' ? Math.round(n * 100) / 100 : n; }
-
   function capturarPosicion(){
     return new Promise((resolve) => {
       if(!navigator.geolocation) return resolve({ dato: null, estado: 'no disponible' });
@@ -759,10 +840,7 @@ async function descifrarRespaldo(obj, frase) {
       );
     });
   }
-
-  const FOTO_MAX_LADO = 2048;
   function capturarFoto(){
-    // requiere previsualización ya encendida (el toggle pidió el permiso)
     const v = $('prev');
     if(!streamCam || !v.videoWidth) return { dato: null, estado: 'sin señal de cámara' };
     const dim = escalarDimensiones(v.videoWidth, v.videoHeight, FOTO_MAX_LADO);
@@ -770,11 +848,9 @@ async function descifrarRespaldo(obj, frase) {
     c.width = dim.w; c.height = dim.h;
     c.getContext('2d').drawImage(v, 0, 0, dim.w, dim.h);
     try{
-      return { dato: c.toDataURL('image/jpeg', 0.82), estado: 'ok',
-               ancho: c.width, alto: c.height };
+      return { dato: c.toDataURL('image/jpeg', 0.82), estado: 'ok', ancho: c.width, alto: c.height };
     }catch(err){ return { dato: null, estado: 'error al codificar' }; }
   }
-
   async function capturarAudio(segundos, onTick){
     let stream;
     try{
@@ -808,21 +884,15 @@ async function descifrarRespaldo(obj, frase) {
     });
   }
 
-  // ---------- captura del momento ----------
+  // ---------- captura ----------
+  let capturando = false;
   async function capturar(){
     if(capturando) return;
     capturando = true;
     const btn = $('cap');
     btn.disabled = true;
     const estado = {};
-    const cfg = {
-      mov: $('t-mov').checked, pos: $('t-pos').checked,
-      foto: $('t-foto').checked, audio: $('t-audio').checked,
-      dur: +$('dur').value,
-    };
     const ahora = new Date();
-
-    // metadatos siempre presentes
     const meta = {
       userAgent: navigator.userAgent,
       idioma: navigator.language,
@@ -835,33 +905,26 @@ async function descifrarRespaldo(obj, frase) {
       densidad: window.devicePixelRatio,
       orientacion: (screen.orientation && screen.orientation.type) || null,
     };
-
-    // permiso de movimiento DENTRO del gesto, antes de cualquier await largo
     let movOK = false;
-    if(cfg.mov){
+    if(PREFS.mov){
       linea.textContent = 'pidiendo permisos…';
       movOK = await pedirPermisoMovimiento();
       if(!movOK) estado.movimiento = 'permiso denegado o no disponible';
     }
-
-    // foto: cuadro inmediato (la cámara ya está encendida por el toggle)
     let media = {};
-    if(cfg.foto){
+    if(PREFS.foto){
       const f = capturarFoto();
       estado.foto = f.estado;
       if(f.dato) media.foto = { dataURL: f.dato, ancho: f.ancho, alto: f.alto, formato: 'image/jpeg' };
     }
-
-    // lanzar en paralelo: movimiento, posición, audio
     linea.textContent = 'capturando…';
-    if(cfg.audio) btn.classList.add('rec');
+    if(PREFS.audio) btn.classList.add('rec');
     const tareas = [];
-    tareas.push(cfg.mov && movOK ? capturarMovimiento(VENTANA_MOV_MS) : Promise.resolve(null));
-    tareas.push(cfg.pos ? capturarPosicion() : Promise.resolve(null));
-    tareas.push(cfg.audio
-      ? capturarAudio(cfg.dur, (s) => { linea.textContent = 'grabando audio… ' + s + 's'; })
+    tareas.push(PREFS.mov && movOK ? capturarMovimiento(VENTANA_MOV_MS) : Promise.resolve(null));
+    tareas.push(PREFS.pos ? capturarPosicion() : Promise.resolve(null));
+    tareas.push(PREFS.audio
+      ? capturarAudio(PREFS.dur, (s) => { linea.textContent = 'grabando audio… ' + s + 's'; })
       : Promise.resolve(null));
-
     const [rMov, rPos, rAudio] = await Promise.all(tareas);
     btn.classList.remove('rec');
 
@@ -869,38 +932,86 @@ async function descifrarRespaldo(obj, frase) {
     if(rMov){
       const res = resumenMovimiento(rMov.muestras);
       if(res){ movimiento = { resumen: res, muestras: rMov.muestras }; estado.movimiento = 'ok'; }
-      else if(!estado.movimiento) estado.movimiento = 'sin muestras (¿escritorio?)';
+      else if(!estado.movimiento) estado.movimiento = 'sin muestras';
       orientacion = rMov.orientacion;
-      if(cfg.mov && !orientacion && !estado.orientacion) estado.orientacion = 'sin lecturas';
     }
     if(rPos){ posicion = rPos.dato; estado.posicion = rPos.estado; }
     if(rAudio){
       estado.audio = rAudio.estado;
       if(rAudio.dato) media.audio = { dataURL: rAudio.dato, formato: rAudio.tipo, segundos: rAudio.segundos };
     }
-
     momento = ensamblarMomento({
       creadoISO: ahora.toISOString(),
       meta, pantalla, posicion, orientacion, movimiento,
-      nota: ($('nota-in').value || '').trim() || null,
-      etiquetas: (function(){ const t = parseEtiquetas($('tags-in').value); return t.length ? t : null; })(),
       media: Object.keys(media).length ? media : null,
       estado,
     });
-    momento._fecha = ahora; // interno, se quita al exportar
-
-    // memoria corta: guardar sin bloquear la UI; si falla, el momento sigue vivo en pantalla
-    try{ momento._id = await guardarEnDB(momento); }
-    catch(err){ momento._id = null; }
-
-    mostrarResultado(momento);
+    momento._fecha = ahora;
     linea.textContent = '';
     btn.disabled = false;
     capturando = false;
+    mostrarConfirm();
   }
   $('cap').addEventListener('click', capturar);
 
-  // ---------- memoria corta (IndexedDB) ----------
+  // ---------- confirmación (jotting + etiquetas recientes) ----------
+  let confSel = new Set();
+  async function mostrarConfirm(){
+    verVista('confirm');
+    const foto = momento.media && momento.media.foto;
+    $('conf-thumb').classList.toggle('hide', !foto);
+    if(foto) $('conf-thumb').src = foto.dataURL;
+    $('jot').value = '';
+    $('conf-nueva').value = '';
+    confSel = new Set();
+    let recientes = [];
+    try{ recientes = etiquetasRecientes(await listarDB(), 10); }catch(_){ }
+    pintarChipsConf(recientes);
+  }
+  function pintarChipsConf(recientes){
+    const cont = $('conf-chips');
+    cont.innerHTML = '';
+    const todas = Array.from(new Set([...confSel, ...recientes]));
+    for(const t of todas){
+      const s = document.createElement('span');
+      s.className = 'chip' + (confSel.has(t) ? ' sel' : '');
+      s.textContent = '#' + t;
+      s.addEventListener('click', () => {
+        if(confSel.has(t)) confSel.delete(t); else confSel.add(t);
+        pintarChipsConf(recientes);
+      });
+      cont.appendChild(s);
+    }
+  }
+  $('conf-nueva').addEventListener('keydown', (e) => {
+    if(e.key !== 'Enter') return;
+    e.preventDefault();
+    const nuevas = parseEtiquetas($('conf-nueva').value);
+    nuevas.forEach((t) => confSel.add(t));
+    $('conf-nueva').value = '';
+    pintarChipsConf(Array.from(confSel));
+  });
+  $('conf-listo').addEventListener('click', async () => {
+    if(!momento) return verVista('campo');
+    const jot = ($('jot').value || '').trim();
+    const extra = parseEtiquetas($('conf-nueva').value);
+    extra.forEach((t) => confSel.add(t));
+    if(jot) momento.nota = jot;
+    if(confSel.size) momento.etiquetas = Array.from(confSel);
+    try{ momento._id = await guardarEnDB(momento); }
+    catch(_){ momento._id = null; }
+    momento = null;
+    verVista('campo');
+    linea.textContent = 'guardado ✓';
+    setTimeout(() => { if(linea.textContent === 'guardado ✓') linea.textContent = ''; }, 2000);
+  });
+  $('conf-descartar').addEventListener('click', () => {
+    if(!confirm('¿Descartar este momento? No se puede recuperar.')) return;
+    momento = null;
+    verVista('campo');
+  });
+
+  // ---------- memoria (IndexedDB) ----------
   const DB_NOMBRE = 'cuadernx', DB_STORE = 'momentos';
   function abrirDB(){
     return new Promise((resolve, reject) => {
@@ -915,7 +1026,7 @@ async function descifrarRespaldo(obj, frase) {
   }
   function guardarEnDB(mo){
     return abrirDB().then((db) => new Promise((resolve, reject) => {
-      const copia = JSON.parse(jsonDe(mo)); // sin campos internos
+      const copia = JSON.parse(jsonDe(mo));
       const tx = db.transaction(DB_STORE, 'readwrite');
       const req = tx.objectStore(DB_STORE).add({ momento: copia });
       req.onsuccess = () => resolve(req.result);
@@ -945,14 +1056,14 @@ async function descifrarRespaldo(obj, frase) {
           creado: mo.creado,
           tz: mo.meta && mo.meta.zonaHoraria,
           etiquetas: mo.etiquetas || [],
+          anotado: esAnotado(mo),
           tiene: [
             mo.posicion ? 'gps' : null,
-            mo.movimiento ? 'mov' : null,
             media.foto ? 'foto' : null,
             media.audio ? 'audio' : null,
             media.notaVoz ? 'voz' : null,
+            media.croquis ? 'croquis' : null,
             mo.nota ? 'nota' : null,
-            (mo.etiquetas && mo.etiquetas.length) ? '#' + mo.etiquetas.length : null,
           ].filter(Boolean),
           bytes: JSON.stringify(mo).length,
         });
@@ -976,89 +1087,6 @@ async function descifrarRespaldo(obj, frase) {
       tx.onerror = () => reject(tx.error);
     }));
   }
-
-  // ---------- navegación de vistas ----------
-  function verVista(cual){
-    $('config').style.display = cual === 'cap' ? '' : 'none';
-    $('resultado').classList.toggle('on', cual === 'res');
-    $('visor').classList.toggle('on', cual === 'arc');
-    $('nav-cap').classList.toggle('act', cual === 'cap' || cual === 'res');
-    $('nav-arc').classList.toggle('act', cual === 'arc');
-    if(cual !== 'cap') apagarCamara();
-  }
-  $('nav-cap').addEventListener('click', async () => {
-    verVista('cap');
-    if($('t-foto').checked) await encenderCamara();
-  });
-  $('nav-arc').addEventListener('click', () => { verVista('arc'); pintarLista(); });
-
-  // ---------- ficha (compartida entre captura fresca y visor) ----------
-  function mostrarResultado(mo){
-    momento = mo;
-    apagarCamara();
-    verVista('res');
-
-    const img = $('r-foto'), au = $('r-audio'), vz = $('r-voz');
-    const media = mo.media || {};
-    img.classList.toggle('hide', !(media.foto || media.croquis));
-    pintarFotoFicha(mo, img);
-
-    $('r-nota').classList.toggle('hide', !mo.nota);
-    $('r-nota').textContent = mo.nota || '';
-    const chips = $('r-chips');
-    chips.classList.toggle('hide', !(mo.etiquetas && mo.etiquetas.length));
-    chips.innerHTML = '';
-    (mo.etiquetas || []).forEach((t) => {
-      const s = document.createElement('span');
-      s.className = 'chip'; s.textContent = '#' + t;
-      chips.appendChild(s);
-    });
-
-    $('l-audio').classList.toggle('hide', !media.audio);
-    au.classList.toggle('hide', !media.audio);
-    if(media.audio) au.src = media.audio.dataURL;
-    $('l-voz').classList.toggle('hide', !media.notaVoz);
-    vz.classList.toggle('hide', !media.notaVoz);
-    if(media.notaVoz) vz.src = media.notaVoz.dataURL;
-
-    $('edicion').classList.remove('on');
-
-    $('sacar-foto').classList.toggle('hide', !media.foto);
-    $('sacar-sello').classList.toggle('hide', !media.foto);
-    $('sacar-mapa').classList.toggle('hide', !mo.posicion);
-    $('sacar-audio').classList.toggle('hide', !media.audio);
-    $('sacar-voz').classList.toggle('hide', !media.notaVoz);
-    $('borrar').classList.toggle('hide', !mo._id);
-
-    const filas = [];
-    filas.push(['creado', mo.creado]);
-    if(mo.modificado) filas.push(['modificado', mo.modificado]);
-    if(mo.posicion){
-      filas.push(['posición', mo.posicion.lat.toFixed(5) + ', ' + mo.posicion.lon.toFixed(5) +
-        ' (±' + mo.posicion.precisionM + ' m)']);
-    }
-    if(mo.orientacion && typeof mo.orientacion.brujula === 'number'){
-      filas.push(['brújula', mo.orientacion.brujula + '°']);
-    }
-    if(mo.movimiento && mo.movimiento.resumen){
-      const r = mo.movimiento.resumen;
-      filas.push(['movimiento', r.n + ' muestras / ' + r.duracionMs + ' ms' +
-        (r.magnitud ? ' · agitación máx ' + r.magnitud.max + ' m/s²' : '')]);
-    }
-    if(media.foto && media.foto.ancho){
-      filas.push(['foto', media.foto.ancho + '×' + media.foto.alto]);
-    }
-    const est = mo.estado || {};
-    for(const k of Object.keys(est)){
-      const ok = est[k] === 'ok';
-      filas.push([k, '<span class="' + (ok ? 'ok' : 'no') + '">' + est[k] + '</span>']);
-    }
-    filas.push(['tamaño JSON', tamanoLegible(new Blob([jsonDe(mo)]).size)]);
-
-    $('r-tabla').innerHTML = filas.map(([k, v]) =>
-      '<tr><td>' + k + '</td><td>' + v + '</td></tr>').join('');
-  }
-
   function jsonDe(mo){
     const copia = Object.assign({}, mo);
     delete copia._fecha; delete copia._id;
@@ -1070,139 +1098,68 @@ async function descifrarRespaldo(obj, frase) {
     return isNaN(d) ? new Date() : d;
   }
 
-  // ---------- descargas ----------
-  function bajarBlob(blob, nombre){
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = nombre;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  }
-  // share sheet nativo (iOS: ahí aparece Google Drive si está instalada su app);
-  // si el navegador no soporta compartir archivos, cae a descarga normal.
-  async function compartirOBajar(blob, nombre){
-    try{
-      const file = new File([blob], nombre, { type: blob.type });
-      if(navigator.canShare && navigator.canShare({ files: [file] })){
-        await navigator.share({ files: [file] });
-        return;
-      }
-    }catch(err){
-      if(err && err.name === 'AbortError') return; // el usuario cerró el share sheet
-    }
-    bajarBlob(blob, nombre);
-  }
-  function blobDeDataURL(dataURL){
-    const coma = dataURL.indexOf(',');
-    const cabecera = dataURL.slice(0, coma);
-    const mime = (cabecera.match(/^data:([^;]+)/) || [])[1] || 'application/octet-stream';
-    const bin = atob(dataURL.slice(coma + 1));
-    const bytes = new Uint8Array(bin.length);
-    for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    return new Blob([bytes], { type: mime });
-  }
-
-  $('exportar').addEventListener('click', () => {
-    if(!momento) return;
-    bajarBlob(new Blob([jsonDe(momento)], { type: 'application/json' }), nombreArchivo(fechaDe(momento)));
+  // ---------- cuaderno: lista por jornadas ----------
+  let filtroTag = '', soloPendientes = false;
+  $('filtro-pend').addEventListener('click', () => {
+    soloPendientes = !soloPendientes;
+    $('filtro-pend').classList.toggle('act', soloPendientes);
+    pintarLista();
   });
-  $('compartir').addEventListener('click', () => {
-    if(!momento) return;
-    compartirOBajar(new Blob([jsonDe(momento)], { type: 'application/json' }), nombreArchivo(fechaDe(momento)));
-  });
-  $('exportar-todo').addEventListener('click', async () => {
+  $('filtro-tag').addEventListener('change', () => { filtroTag = $('filtro-tag').value; pintarLista(); });
+  async function pintarLista(){
+    const lista = $('lista');
     let items;
     try{ items = await listarDB(); }
-    catch(err){ $('exportar-todo').textContent = 'memoria no disponible'; return; }
-    if(!items.length){ $('exportar-todo').textContent = 'no hay nada que exportar'; return; }
-    const momentos = [];
-    for(const it of items){
-      const mo = await leerDeDB(it.id);
-      if(mo) momentos.push(mo);
+    catch(err){
+      lista.innerHTML = '<div class="vacio">memoria corta no disponible en este navegador</div>';
+      $('filtros').classList.add('hide');
+      return;
     }
-    const respaldo = {
-      formato: 'cuadernx-respaldo/1',
-      exportado: new Date().toISOString(),
-      momentos: momentos,
-    };
-    const nombre = nombreArchivo(new Date()).replace(/^cuadernx_/, 'cuadernx_respaldo_');
-    // cifrado opcional: WebCrypto (AES-GCM, clave derivada por PBKDF2)
-    const frase = prompt('Frase de paso para cifrar el respaldo\n(deja vacío para exportar sin cifrar):');
-    if(frase === null) return; // canceló
-    if(frase){
-      try{
-        const cif = await cifrarRespaldo(JSON.stringify(respaldo), frase);
-        compartirOBajar(new Blob([JSON.stringify(cif)], { type: 'application/json' }), nombre);
-        return;
-      }catch(err){
-        $('exportar-todo').textContent = 'cifrado falló: ' + (err && err.name || 'error');
-        return;
-      }
+    if(!items.length){
+      lista.innerHTML = '<div class="vacio">sin momentos — captura desde la pestaña campo, o importa un JSON en herramientas</div>';
+      $('filtros').classList.add('hide');
+      return;
     }
-    compartirOBajar(new Blob([JSON.stringify(respaldo)], { type: 'application/json' }), nombre);
-  });
-  $('sacar-foto').addEventListener('click', () => {
-    const f = momento && momento.media && momento.media.foto;
-    if(!f) return;
-    const base = nombreArchivo(fechaDe(momento)).replace(/\.json$/, '');
-    bajarBlob(blobDeDataURL(f.dataURL), base + '_foto.' + extensionDeMime(f.formato));
-  });
-  // foto+datos: banda estilo data-back añadida DEBAJO de la foto (no tapa píxeles)
-  $('sacar-sello').addEventListener('click', () => {
-    const f = momento && momento.media && momento.media.foto;
-    if(!f) return;
-    const mo = momento;
-    const img = new Image();
-    img.onload = () => {
-      const w = img.naturalWidth, h = img.naturalHeight;
-      const lineas = lineasSello(mo);
-      const fpx = Math.max(13, Math.round(w * 0.024));   // tamaño de texto proporcional
-      const lh = Math.round(fpx * 1.7);
-      const pad = Math.round(fpx * 1.2);
-      const banda = pad * 2 + lh * Math.max(1, lineas.length);
-      const c = document.createElement('canvas');
-      c.width = w; c.height = h + banda;
-      const x = c.getContext('2d');
-      x.drawImage(img, 0, 0);
-      if(mo.media && mo.media.croquis) dibujarTrazos(x, mo.media.croquis.trazos, w, h);
-      x.fillStyle = '#16170f';
-      x.fillRect(0, h, w, banda);
-      x.textBaseline = 'middle';
-      x.font = '500 ' + fpx + 'px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
-      x.fillStyle = '#d8d6c4';
-      lineas.forEach((l, i) => x.fillText(l, pad, h + pad + lh * i + lh / 2));
-      // marca discreta en musgo, alineada a la derecha de la primera línea
-      x.fillStyle = '#8fa676';
-      const marca = 'CUADERNX';
-      x.fillText(marca, w - pad - x.measureText(marca).width, h + pad + lh / 2);
-      const base = nombreArchivo(fechaDe(mo)).replace(/\.json$/, '');
-      c.toBlob((blob) => {
-        if(blob) bajarBlob(blob, base + '_sello.jpg');
-        else linea.textContent = 'no se pudo generar el sello';
-      }, 'image/jpeg', 0.9);
-    };
-    img.onerror = () => { linea.textContent = 'no se pudo decodificar la foto'; };
-    img.src = f.dataURL;
-  });
-  $('sacar-audio').addEventListener('click', () => {
-    const a = momento && momento.media && momento.media.audio;
-    if(!a) return;
-    const base = nombreArchivo(fechaDe(momento)).replace(/\.json$/, '');
-    bajarBlob(blobDeDataURL(a.dataURL), base + '_audio.' + extensionDeMime(a.formato));
-  });
-  $('sacar-voz').addEventListener('click', () => {
-    const v = momento && momento.media && momento.media.notaVoz;
-    if(!v) return;
-    const base = nombreArchivo(fechaDe(momento)).replace(/\.json$/, '');
-    bajarBlob(blobDeDataURL(v.dataURL), base + '_voz.' + extensionDeMime(v.formato));
-  });
-  $('borrar').addEventListener('click', async () => {
-    if(!momento || !momento._id) return;
-    await borrarDeDB(momento._id);
-    verVista('arc'); pintarLista();
-  });
+    $('filtros').classList.remove('hide');
+    const tags = new Set();
+    items.forEach((it) => it.etiquetas.forEach((t) => tags.add(t)));
+    const sel = $('filtro-tag');
+    const previa = filtroTag;
+    sel.innerHTML = '<option value="">todas las etiquetas</option>' +
+      Array.from(tags).sort().map((t) =>
+        '<option value="' + t.replace(/"/g, '&quot;') + '">#' + t + '</option>').join('');
+    sel.value = previa; if(sel.value !== previa) filtroTag = '';
 
-  // ---------- croquis: render de trazos (coordenadas normalizadas 0..1) ----------
+    let visibles = filtroTag ? items.filter((it) => it.etiquetas.indexOf(filtroTag) !== -1) : items;
+    if(soloPendientes) visibles = visibles.filter((it) => !it.anotado);
+    if(!visibles.length){
+      lista.innerHTML = '<div class="vacio">' + (soloPendientes ? 'todo anotado ✓' : 'sin momentos con esa etiqueta') + '</div>';
+      return;
+    }
+    const grupos = agruparPorJornada(visibles);
+    lista.innerHTML = grupos.map((g) =>
+      '<div class="jornada-h">' + g.jornada + '</div>' +
+      g.items.map((it) => {
+        const d = new Date(it.creado);
+        const cuando = isNaN(d) ? String(it.creado) : d.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+        return '<div class="item" data-id="' + it.id + '">' +
+          '<span class="dot' + (it.anotado ? ' si' : '') + '">' + (it.anotado ? '●' : '○') + '</span>' +
+          '<div><div class="cuando">' + cuando + '</div>' +
+          '<div class="que">' + (it.tiene.join(' · ') || 'solo metadatos') + '</div></div>' +
+          '<div class="peso">' + tamanoLegible(it.bytes) + '</div></div>';
+      }).join('')
+    ).join('');
+    lista.querySelectorAll('.item').forEach((el) => {
+      el.addEventListener('click', async () => {
+        const mo = await leerDeDB(+el.dataset.id);
+        if(!mo){ pintarLista(); return; }
+        mo._id = +el.dataset.id;
+        mostrarFicha(mo);
+      });
+    });
+  }
+
+  // ---------- ficha de anotación ----------
   function dibujarTrazos(x, trazos, w, h){
     for(const t of (trazos || [])){
       if(!t.puntos || t.puntos.length < 2) continue;
@@ -1215,12 +1172,9 @@ async function descifrarRespaldo(obj, frase) {
       x.stroke();
     }
   }
-
-  // ficha: foto con croquis superpuesto (solo display; la foto del JSON queda intacta)
   function pintarFotoFicha(mo, imgEl){
     const media = mo.media || {};
     if(media.foto && !media.croquis){ imgEl.src = media.foto.dataURL; return; }
-    if(!media.foto && !media.croquis) return;
     const pintar = (w, h, fondo) => {
       const c = document.createElement('canvas');
       c.width = w; c.height = h;
@@ -1234,110 +1188,215 @@ async function descifrarRespaldo(obj, frase) {
       const im = new Image();
       im.onload = () => pintar(im.naturalWidth, im.naturalHeight, im);
       im.src = media.foto.dataURL;
-    } else {
-      pintar(1600, 1200, null); // croquis sobre lienzo en blanco
+    } else if(media.croquis){
+      pintar(1600, 1200, null);
     }
   }
-
-  // ---------- mapa OSM/Carto con pin ----------
-  const MAPA_Z = 16, TESELA_PX = 512, MAPA_W = 1200, MAPA_H = 900;
-  function urlTesela(x, y, z){
-    const sub = 'abcd'[(x + y) % 4];
-    return 'https://' + sub + '.basemaps.cartocdn.com/rastertiles/voyager/' + z + '/' + x + '/' + y + '@2x.png';
+  let fichaTags = [];
+  function mostrarFicha(mo){
+    momento = mo;
+    verVista('ficha');
+    $('f-cuando').textContent = fechaSello(mo.creado, mo.meta && mo.meta.zonaHoraria) || mo.creado;
+    const media = mo.media || {};
+    const hayImagen = !!(media.foto || media.croquis);
+    $('f-foto').classList.toggle('hide', !hayImagen);
+    $('f-foto-vacia').classList.toggle('hide', hayImagen);
+    if(hayImagen) pintarFotoFicha(mo, $('f-foto'));
+    $('f-amb').classList.toggle('hide', !media.audio);
+    if(media.audio) $('f-amb-audio').src = media.audio.dataURL;
+    $('f-nota').value = mo.nota || '';
+    $('f-guardado').textContent = '';
+    fichaTags = (mo.etiquetas || []).slice();
+    pintarChipsFicha();
+    pintarVozFicha();
+    pintarTabla(mo);
+    $('f-datos').open = false;
   }
-  function cargarImg(url){
-    return new Promise((resolve) => {
-      const im = new Image();
-      im.crossOrigin = 'anonymous';
-      im.onload = () => resolve(im);
-      im.onerror = () => resolve(null); // tesela caída: hueco gris, no fallo total
-      im.src = url;
+  $('f-volver').addEventListener('click', () => { verVista('cuaderno'); pintarLista(); });
+
+  function pintarTabla(mo){
+    const filas = [];
+    filas.push(['creado', mo.creado]);
+    if(mo.modificado) filas.push(['modificado', mo.modificado]);
+    if(mo.posicion){
+      filas.push(['posición', mo.posicion.lat.toFixed(5) + ', ' + mo.posicion.lon.toFixed(5) +
+        ' (±' + mo.posicion.precisionM + ' m)']);
+    }
+    if(mo.orientacion && typeof mo.orientacion.brujula === 'number'){
+      filas.push(['brújula', mo.orientacion.brujula + '°' +
+        (mo.orientacion.brujulaFuente === 'alpha-absoluta' ? ' (aprox.)' : '')]);
+    }
+    if(mo.movimiento && mo.movimiento.resumen){
+      const r = mo.movimiento.resumen;
+      filas.push(['movimiento', r.n + ' muestras / ' + r.duracionMs + ' ms' +
+        (r.magnitud ? ' · agitación máx ' + r.magnitud.max + ' m/s²' : '')]);
+    }
+    const media = mo.media || {};
+    if(media.foto && media.foto.ancho) filas.push(['foto', media.foto.ancho + '×' + media.foto.alto]);
+    const est = mo.estado || {};
+    for(const k of Object.keys(est)){
+      const ok = est[k] === 'ok';
+      filas.push([k, '<span class="' + (ok ? 'ok' : 'no') + '">' + est[k] + '</span>']);
+    }
+    filas.push(['tamaño JSON', tamanoLegible(new Blob([jsonDe(mo)]).size)]);
+    $('r-tabla').innerHTML = filas.map(([k, v]) =>
+      '<tr><td>' + k + '</td><td>' + v + '</td></tr>').join('');
+  }
+
+  // autoguardado: nota + etiquetas, debounce de 2 s
+  let saveTimer = null;
+  function programarGuardado(){
+    $('f-guardado').textContent = '…';
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => ejecutarGuardado({}), 2000);
+  }
+  async function ejecutarGuardado(extraCambios){
+    clearTimeout(saveTimer); saveTimer = null;
+    if(!momento) return;
+    const cambios = Object.assign({
+      nota: $('f-nota').value,
+      etiquetas: fichaTags.slice(),
+    }, extraCambios);
+    const id = momento._id, fecha = momento._fecha;
+    const editado = aplicarEdicion(momento, cambios, new Date().toISOString());
+    editado._id = id; editado._fecha = fecha;
+    try{
+      if(id) await actualizarEnDB(id, editado);
+      else editado._id = await guardarEnDB(editado);
+      momento = editado;
+      $('f-guardado').textContent = 'guardado ✓';
+    }catch(err){
+      momento = editado;
+      $('f-guardado').textContent = 'sin memoria — exporta para no perder';
+    }
+  }
+  $('f-nota').addEventListener('input', programarGuardado);
+
+  function pintarChipsFicha(){
+    const cont = $('f-chips');
+    cont.innerHTML = '';
+    for(const t of fichaTags){
+      const s = document.createElement('span');
+      s.className = 'chip sel';
+      s.innerHTML = '';
+      s.appendChild(document.createTextNode('#' + t));
+      const x = document.createElement('span');
+      x.className = 'x'; x.textContent = '✕';
+      s.appendChild(x);
+      s.addEventListener('click', () => {
+        fichaTags = fichaTags.filter((o) => o !== t);
+        pintarChipsFicha(); ejecutarGuardado({});
+      });
+      cont.appendChild(s);
+    }
+    pintarRecientesFicha();
+  }
+  async function pintarRecientesFicha(){
+    const cont = $('f-recientes');
+    cont.innerHTML = '';
+    let recientes = [];
+    try{ recientes = etiquetasRecientes(await listarDB(), 10); }catch(_){ }
+    recientes.filter((t) => fichaTags.indexOf(t) === -1).forEach((t) => {
+      const s = document.createElement('span');
+      s.className = 'chip'; s.textContent = '+ #' + t;
+      s.addEventListener('click', () => {
+        fichaTags.push(t);
+        pintarChipsFicha(); ejecutarGuardado({});
+      });
+      cont.appendChild(s);
     });
   }
-  async function generarMapa(mo){
-    const p = mo.posicion;
-    const t = teselaDe(p.lat, p.lon, MAPA_Z);
-    const gx = t.x * TESELA_PX, gy = t.y * TESELA_PX; // píxel global del pin
-    const x0 = gx - MAPA_W / 2, y0 = gy - MAPA_H / 2;
-    const tx0 = Math.floor(x0 / TESELA_PX), tx1 = Math.floor((x0 + MAPA_W) / TESELA_PX);
-    const ty0 = Math.floor(y0 / TESELA_PX), ty1 = Math.floor((y0 + MAPA_H) / TESELA_PX);
-    const n = Math.pow(2, MAPA_Z);
-    const cargas = [];
-    for(let ty = ty0; ty <= ty1; ty++){
-      for(let tx = tx0; tx <= tx1; tx++){
-        const txm = ((tx % n) + n) % n; // envolver longitud
-        cargas.push(cargarImg(urlTesela(txm, ty, MAPA_Z)).then((im) => ({ im, tx, ty })));
-      }
-    }
-    const teselas = await Promise.all(cargas);
-    const banda = 26;
-    const c = document.createElement('canvas');
-    c.width = MAPA_W; c.height = MAPA_H + banda;
-    const x = c.getContext('2d');
-    x.fillStyle = '#dfe3e0'; x.fillRect(0, 0, MAPA_W, MAPA_H);
-    for(const s of teselas){
-      if(s.im) x.drawImage(s.im, s.tx * TESELA_PX - x0, s.ty * TESELA_PX - y0, TESELA_PX, TESELA_PX);
-    }
-    // pin: aguja + cabeza musgo con borde carbón
-    const px = MAPA_W / 2, py = MAPA_H / 2;
-    x.strokeStyle = '#16170f'; x.lineWidth = 3;
-    x.beginPath(); x.moveTo(px, py); x.lineTo(px, py - 26); x.stroke();
-    x.fillStyle = '#8fa676';
-    x.beginPath(); x.arc(px, py - 32, 9, 0, Math.PI * 2); x.fill();
-    x.lineWidth = 2; x.beginPath(); x.arc(px, py - 32, 9, 0, Math.PI * 2); x.stroke();
-    x.fillStyle = '#16170f';
-    x.beginPath(); x.arc(px, py, 3, 0, Math.PI * 2); x.fill();
-    // banda: coordenadas + atribución obligatoria
-    x.fillStyle = '#16170f'; x.fillRect(0, MAPA_H, MAPA_W, banda);
-    x.font = '500 12px ui-monospace, Menlo, Consolas, monospace';
-    x.textBaseline = 'middle';
-    x.fillStyle = '#d8d6c4';
-    x.fillText(p.lat.toFixed(5) + ', ' + p.lon.toFixed(5) + ' · z' + MAPA_Z, 10, MAPA_H + banda / 2);
-    const attr = '© OpenStreetMap contributors © CARTO';
-    x.fillStyle = '#8a8c78';
-    x.fillText(attr, MAPA_W - 10 - x.measureText(attr).width, MAPA_H + banda / 2);
-    return c;
+  $('f-nueva').addEventListener('keydown', (e) => {
+    if(e.key !== 'Enter') return;
+    e.preventDefault();
+    const nuevas = parseEtiquetas($('f-nueva').value);
+    nuevas.forEach((t) => { if(fichaTags.indexOf(t) === -1) fichaTags.push(t); });
+    $('f-nueva').value = '';
+    pintarChipsFicha(); ejecutarGuardado({});
+  });
+
+  // ---------- nota de voz ----------
+  let grabadora = null, grabTimer = null;
+  function pintarVozFicha(){
+    const v = momento && momento.media && momento.media.notaVoz;
+    $('f-voz-audio').classList.toggle('hide', !v);
+    $('f-voz-quitar').classList.toggle('hide', !v);
+    if(v) $('f-voz-audio').src = v.dataURL;
+    $('f-voz-grabar').textContent = v ? '● regrabar' : '● grabar';
+    $('f-voz-grabar').classList.remove('rec');
   }
-  $('sacar-mapa').addEventListener('click', async () => {
-    if(!momento || !momento.posicion) return;
-    $('sacar-mapa').textContent = 'cargando teselas…';
-    try{
-      const c = await generarMapa(momento);
-      const base = nombreArchivo(fechaDe(momento)).replace(/\.json$/, '');
-      c.toBlob((blob) => {
-        if(blob) bajarBlob(blob, base + '_mapa.jpg');
-        $('sacar-mapa').textContent = 'guardar mapa';
-      }, 'image/jpeg', 0.9);
-    }catch(err){
-      // canvas contaminado (CORS) u otra falla: reportar, no romper
-      $('sacar-mapa').textContent = 'mapa falló: ' + (err && err.name || 'error');
+  function detenerGrabacion(descartar){
+    if(grabTimer){ clearInterval(grabTimer); grabTimer = null; }
+    if(grabadora && grabadora.rec.state !== 'inactive'){
+      grabadora.descartar = !!descartar;
+      grabadora.rec.stop();
     }
+    $('f-voz-grabar').classList.remove('rec');
+  }
+  $('f-voz-grabar').addEventListener('click', async () => {
+    if(grabadora && grabadora.rec.state === 'recording'){ detenerGrabacion(false); return; }
+    if(!navigator.mediaDevices){ $('f-voz-grabar').textContent = 'mic no disponible'; return; }
+    let stream;
+    try{ stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false }); }
+    catch(err){ $('f-voz-grabar').textContent = 'mic: ' + traducirError(err); return; }
+    let rec;
+    try{ rec = new MediaRecorder(stream); }
+    catch(err){
+      stream.getTracks().forEach(t => t.stop());
+      $('f-voz-grabar').textContent = 'grabación no disponible'; return;
+    }
+    const chunks = [];
+    grabadora = { rec: rec, descartar: false };
+    rec.ondataavailable = (e) => { if(e.data && e.data.size) chunks.push(e.data); };
+    rec.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      const propia = grabadora; grabadora = null;
+      if(propia.descartar){ pintarVozFicha(); return; }
+      const blob = new Blob(chunks, { type: rec.mimeType || 'audio/mp4' });
+      const fr = new FileReader();
+      fr.onload = async () => {
+        await ejecutarGuardado({ notaVoz: { dataURL: fr.result, formato: blob.type, origen: 'grabada' } });
+        pintarVozFicha();
+      };
+      fr.readAsDataURL(blob);
+    };
+    rec.start();
+    let seg = 0;
+    $('f-voz-grabar').classList.add('rec');
+    $('f-voz-grabar').textContent = '■ 0s';
+    grabTimer = setInterval(() => {
+      seg++;
+      $('f-voz-grabar').textContent = '■ ' + seg + 's';
+      if(seg >= 300) detenerGrabacion(false);
+    }, 1000);
+  });
+  $('f-voz-adjuntar').addEventListener('click', () => $('f-voz-file').click());
+  $('f-voz-file').addEventListener('change', (e) => {
+    const file = e.target.files[0]; e.target.value = '';
+    if(!file) return;
+    if(!/^audio\//.test(file.type) && !/\.(m4a|mp3|wav|aac|ogg)$/i.test(file.name)){
+      $('f-voz-adjuntar').textContent = 'no es audio'; return;
+    }
+    const fr = new FileReader();
+    fr.onload = async () => {
+      await ejecutarGuardado({ notaVoz: { dataURL: fr.result, formato: file.type || 'audio/mp4',
+        origen: 'adjunta', nombreOriginal: file.name } });
+      $('f-voz-adjuntar').textContent = 'adjuntar';
+      pintarVozFicha();
+    };
+    fr.readAsDataURL(file);
+  });
+  $('f-voz-quitar').addEventListener('click', async () => {
+    if(!confirm('¿Quitar la nota de voz?')) return;
+    await ejecutarGuardado({ notaVoz: null });
+    pintarVozFicha();
   });
 
-  // ---------- markdown ----------
-  $('sacar-md').addEventListener('click', () => {
-    if(!momento) return;
-    const base = nombreArchivo(fechaDe(momento)).replace(/\.json$/, '');
-    compartirOBajar(new Blob([mdDeMomento(momento)], { type: 'text/markdown' }), base + '.md');
-  });
-  $('cuaderno-md').addEventListener('click', async () => {
-    let items;
-    try{ items = await listarDB(); }
-    catch(err){ $('cuaderno-md').textContent = 'memoria no disponible'; return; }
-    if(!items.length){ $('cuaderno-md').textContent = 'no hay momentos'; return; }
-    const momentos = [];
-    for(const it of items){ const mo = await leerDeDB(it.id); if(mo) momentos.push(mo); }
-    momentos.sort((a, b) => String(a.creado).localeCompare(String(b.creado)));
-    const nombre = nombreArchivo(new Date()).replace(/^cuadernx_/, 'cuadernx_cuaderno_').replace(/\.json$/, '.md');
-    compartirOBajar(new Blob([mdDeCuaderno(momentos)], { type: 'text/markdown' }), nombre);
-  });
-
-  // ---------- croquis: capa de dibujo ----------
-  const cq = { trazos: [], actual: null, color: '#8fa676', ancho: 0.006,
-               fondo: null, base: 'lienzo' };
-  const cqCv = $('cq-lienzo'), cqCtx = cqCv.getContext('2d');
-
+  // ---------- croquis ----------
+  const cq = { trazos: [], actual: null, color: '#8fa676', ancho: 0.006, fondo: null, base: 'lienzo' };
+  const cqCv = $('cq-lienzo'), cqCtx = cqCv.getContext && cqCv.getContext('2d');
   function cqRedibujar(){
+    if(!cqCtx) return;
     const w = cqCv.width, h = cqCv.height;
     if(cq.fondo) cqCtx.drawImage(cq.fondo, 0, 0, w, h);
     else{ cqCtx.fillStyle = '#ece6d4'; cqCtx.fillRect(0, 0, w, h); }
@@ -1349,7 +1408,6 @@ async function descifrarRespaldo(obj, frase) {
     cq.trazos = (media.croquis && media.croquis.trazos) ? JSON.parse(JSON.stringify(media.croquis.trazos)) : [];
     cq.actual = null;
     const abrirCon = (w, h) => {
-      // ajustar al viewport conservando proporción (el dibujo se guarda normalizado)
       const maxW = window.innerWidth - 20, maxH = window.innerHeight - 80;
       const f = Math.min(maxW / w, maxH / h, 1);
       cqCv.width = Math.round(w * f); cqCv.height = Math.round(h * f);
@@ -1366,8 +1424,8 @@ async function descifrarRespaldo(obj, frase) {
       abrirCon(1600, 1200);
     }
   }
-  $('croquis-btn').addEventListener('click', cqAbrir);
-
+  $('f-foto').addEventListener('click', cqAbrir);
+  $('f-foto-vacia').addEventListener('click', cqAbrir);
   function cqPunto(e){
     const r = cqCv.getBoundingClientRect();
     return [ (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height ];
@@ -1383,7 +1441,7 @@ async function descifrarRespaldo(obj, frase) {
     cq.actual.puntos.push(cqPunto(e));
     cqRedibujar();
   });
-  function cqSoltar(e){
+  function cqSoltar(){
     if(!cq.actual) return;
     if(cq.actual.puntos.length > 1) cq.trazos.push(cq.actual);
     cq.actual = null;
@@ -1391,7 +1449,6 @@ async function descifrarRespaldo(obj, frase) {
   }
   cqCv.addEventListener('pointerup', cqSoltar);
   cqCv.addEventListener('pointercancel', cqSoltar);
-
   document.querySelectorAll('.cq-color').forEach((el) => {
     el.addEventListener('click', () => {
       document.querySelectorAll('.cq-color').forEach((o) => o.classList.remove('act'));
@@ -1413,198 +1470,215 @@ async function descifrarRespaldo(obj, frase) {
   $('cq-guardar').addEventListener('click', async () => {
     $('croquis-capa').classList.remove('on');
     if(!momento) return;
-    const cambios = { croquis: cq.trazos.length ? { base: cq.base, trazos: cq.trazos } : null };
-    const id = momento._id;
-    const editado = aplicarEdicion(momento, cambios, new Date().toISOString());
-    editado._fecha = momento._fecha; editado._id = id;
+    await ejecutarGuardado({ croquis: cq.trazos.length ? { base: cq.base, trazos: cq.trazos } : null });
+    const media = momento.media || {};
+    const hayImagen = !!(media.foto || media.croquis);
+    $('f-foto').classList.toggle('hide', !hayImagen);
+    $('f-foto-vacia').classList.toggle('hide', hayImagen);
+    if(hayImagen) pintarFotoFicha(momento, $('f-foto'));
+    pintarTabla(momento);
+  });
+
+  // ---------- descargas y compartir ----------
+  function bajarBlob(blob, nombre){
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = nombre;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+  async function compartirOBajar(blob, nombre){
     try{
-      if(id) await actualizarEnDB(id, editado);
-      else editado._id = await guardarEnDB(editado);
-    }catch(err){ }
-    mostrarResultado(editado);
-  });
-
-  // ---------- edición del momento ----------
-  let vozPendiente; // undefined = sin cambio, null = quitar, objeto = nueva
-  let grabadora = null, grabTimer = null;
-
-  $('editar').addEventListener('click', () => {
-    if(!momento) return;
-    vozPendiente = undefined;
-    $('ed-nota').value = momento.nota || '';
-    $('ed-tags').value = textoEtiquetas(momento.etiquetas);
-    $('vz-quitar').classList.toggle('hide', !(momento.media && momento.media.notaVoz));
-    $('vz-grabar').textContent = '● grabar';
-    $('edicion').classList.add('on');
-  });
-  $('ed-cancelar').addEventListener('click', () => {
-    detenerGrabacion(true);
-    $('edicion').classList.remove('on');
-  });
-
-  function detenerGrabacion(descartar){
-    if(grabTimer){ clearInterval(grabTimer); grabTimer = null; }
-    if(grabadora && grabadora.rec.state !== 'inactive'){
-      grabadora.descartar = !!descartar;
-      grabadora.rec.stop();
+      const file = new File([blob], nombre, { type: blob.type });
+      if(navigator.canShare && navigator.canShare({ files: [file] })){
+        await navigator.share({ files: [file] });
+        return;
+      }
+    }catch(err){
+      if(err && err.name === 'AbortError') return;
     }
-    $('vz-grabar').classList.remove('rec');
-    $('vz-grabar').textContent = '● grabar';
+    bajarBlob(blob, nombre);
+  }
+  function blobDeDataURL(dataURL){
+    const coma = dataURL.indexOf(',');
+    const cabecera = dataURL.slice(0, coma);
+    const mime = (cabecera.match(/^data:([^;]+)/) || [])[1] || 'application/octet-stream';
+    const bin = atob(dataURL.slice(coma + 1));
+    const bytes = new Uint8Array(bin.length);
+    for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new Blob([bytes], { type: mime });
   }
 
-  $('vz-grabar').addEventListener('click', async () => {
-    if(grabadora && grabadora.rec.state === 'recording'){ detenerGrabacion(false); return; }
-    let stream;
-    try{ stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false }); }
-    catch(err){ $('vz-grabar').textContent = 'mic: ' + traducirError(err); return; }
-    let rec;
-    try{ rec = new MediaRecorder(stream); }
-    catch(err){
-      stream.getTracks().forEach(t => t.stop());
-      $('vz-grabar').textContent = 'grabación no disponible'; return;
-    }
-    const chunks = [];
-    grabadora = { rec: rec, descartar: false };
-    rec.ondataavailable = (e) => { if(e.data && e.data.size) chunks.push(e.data); };
-    rec.onstop = () => {
-      stream.getTracks().forEach(t => t.stop());
-      const propia = grabadora; grabadora = null;
-      if(propia.descartar) return;
-      const blob = new Blob(chunks, { type: rec.mimeType || 'audio/mp4' });
-      const fr = new FileReader();
-      fr.onload = () => {
-        vozPendiente = { dataURL: fr.result, formato: blob.type, origen: 'grabada' };
-        $('vz-grabar').textContent = '✓ grabada — regrabar';
-        $('vz-quitar').classList.remove('hide');
-      };
-      fr.readAsDataURL(blob);
-    };
-    rec.start();
-    let seg = 0;
-    $('vz-grabar').classList.add('rec');
-    $('vz-grabar').textContent = '■ detener 0s';
-    grabTimer = setInterval(() => {
-      seg++;
-      $('vz-grabar').textContent = '■ detener ' + seg + 's';
-      if(seg >= 300) detenerGrabacion(false); // tope de 5 min
-    }, 1000);
-  });
-
-  $('vz-adjuntar').addEventListener('click', () => $('vz-file').click());
-  $('vz-file').addEventListener('change', (e) => {
-    const file = e.target.files[0]; e.target.value = '';
-    if(!file) return;
-    if(!/^audio\//.test(file.type) && !/\.(m4a|mp3|wav|aac|ogg)$/i.test(file.name)){
-      $('vz-adjuntar').textContent = 'eso no parece audio'; return;
-    }
-    const fr = new FileReader();
-    fr.onload = () => {
-      vozPendiente = { dataURL: fr.result, formato: file.type || 'audio/mp4',
-                       origen: 'adjunta', nombreOriginal: file.name };
-      $('vz-adjuntar').textContent = '✓ ' + file.name;
-      $('vz-quitar').classList.remove('hide');
-    };
-    fr.onerror = () => { $('vz-adjuntar').textContent = 'no se pudo leer'; };
-    fr.readAsDataURL(file);
-  });
-  $('vz-quitar').addEventListener('click', () => {
-    vozPendiente = null;
-    $('vz-quitar').textContent = '✓ se quitará al guardar';
-  });
-
-  $('ed-guardar').addEventListener('click', async () => {
+  // ---------- hoja de exportación ----------
+  function abrirHoja(){
     if(!momento) return;
-    detenerGrabacion(true);
-    const cambios = {
-      nota: $('ed-nota').value,
-      etiquetas: parseEtiquetas($('ed-tags').value),
-    };
-    if(vozPendiente !== undefined) cambios.notaVoz = vozPendiente;
-    const id = momento._id;
-    const editado = aplicarEdicion(momento, cambios, new Date().toISOString());
-    editado._fecha = momento._fecha; editado._id = id;
-    try{
-      if(id) await actualizarEnDB(id, editado);
-      else editado._id = await guardarEnDB(editado);
-    }catch(err){ /* la edición vive en pantalla y en el JSON exportable aunque la DB falle */ }
-    // restaurar rótulos de controles
-    $('vz-adjuntar').textContent = 'adjuntar archivo';
-    $('vz-quitar').textContent = 'quitar actual';
-    mostrarResultado(editado);
-  });
+    const media = momento.media || {};
+    $('h-foto').classList.toggle('hide', !media.foto);
+    $('h-sello').classList.toggle('hide', !media.foto);
+    $('h-mapa').classList.toggle('hide', !momento.posicion);
+    $('h-voz').classList.toggle('hide', !media.notaVoz);
+    $('h-borrar').classList.toggle('hide', !momento._id);
+    $('hoja').classList.add('on'); $('hoja-fondo').classList.add('on');
+  }
+  function cerrarHoja(){
+    $('hoja').classList.remove('on'); $('hoja-fondo').classList.remove('on');
+  }
+  $('f-exportar').addEventListener('click', abrirHoja);
+  $('h-cerrar').addEventListener('click', cerrarHoja);
+  $('hoja-fondo').addEventListener('click', cerrarHoja);
 
-  $('otra').addEventListener('click', async () => {
+  $('h-json').addEventListener('click', () => {
+    cerrarHoja();
+    bajarBlob(new Blob([jsonDe(momento)], { type: 'application/json' }), nombreArchivo(fechaDe(momento)));
+  });
+  $('h-compartir').addEventListener('click', () => {
+    cerrarHoja();
+    compartirOBajar(new Blob([jsonDe(momento)], { type: 'application/json' }), nombreArchivo(fechaDe(momento)));
+  });
+  $('h-md').addEventListener('click', () => {
+    cerrarHoja();
+    const base = nombreArchivo(fechaDe(momento)).replace(/\.json$/, '');
+    compartirOBajar(new Blob([mdDeMomento(momento)], { type: 'text/markdown' }), base + '.md');
+  });
+  $('h-foto').addEventListener('click', () => {
+    cerrarHoja();
+    const f = momento.media && momento.media.foto;
+    if(!f) return;
+    const base = nombreArchivo(fechaDe(momento)).replace(/\.json$/, '');
+    bajarBlob(blobDeDataURL(f.dataURL), base + '_foto.' + extensionDeMime(f.formato));
+  });
+  $('h-voz').addEventListener('click', () => {
+    cerrarHoja();
+    const v = momento.media && momento.media.notaVoz;
+    if(!v) return;
+    const base = nombreArchivo(fechaDe(momento)).replace(/\.json$/, '');
+    bajarBlob(blobDeDataURL(v.dataURL), base + '_voz.' + extensionDeMime(v.formato));
+  });
+  $('h-borrar').addEventListener('click', async () => {
+    if(!momento || !momento._id) return;
+    if(!confirm('¿Borrar este momento de la memoria? El JSON exportado no se ve afectado.')) return;
+    cerrarHoja();
+    await borrarDeDB(momento._id);
     momento = null;
-    $('nota-in').value = ''; $('tags-in').value = '';
-    verVista('cap');
-    if($('t-foto').checked) await encenderCamara();
+    verVista('cuaderno'); pintarLista();
   });
 
-  // ---------- visor: lista de memoria corta por jornadas ----------
-  let filtroTag = '';
-  async function pintarLista(){
-    const lista = $('lista');
-    let items;
-    try{ items = await listarDB(); }
-    catch(err){
-      lista.innerHTML = '<div class="vacio">memoria corta no disponible en este navegador</div>';
-      $('filtro-wrap').classList.add('hide');
-      return;
-    }
-    if(!items.length){
-      lista.innerHTML = '<div class="vacio">sin capturas guardadas — cada captura nueva queda aquí</div>';
-      $('filtro-wrap').classList.add('hide');
-      return;
-    }
-    // poblar filtro con todas las etiquetas presentes
-    const tags = new Set();
-    items.forEach((it) => it.etiquetas.forEach((t) => tags.add(t)));
-    const sel = $('filtro-tag');
-    $('filtro-wrap').classList.toggle('hide', !tags.size);
-    const previa = filtroTag;
-    sel.innerHTML = '<option value="">todas las etiquetas</option>' +
-      Array.from(tags).sort().map((t) =>
-        '<option value="' + t.replace(/"/g, '&quot;') + '">#' + t + '</option>').join('');
-    sel.value = previa; if(sel.value !== previa) filtroTag = '';
+  // sello foto+datos (con croquis horneado)
+  $('h-sello').addEventListener('click', () => {
+    cerrarHoja();
+    const f = momento && momento.media && momento.media.foto;
+    if(!f) return;
+    const mo = momento;
+    const img = new Image();
+    img.onload = () => {
+      const w = img.naturalWidth, h = img.naturalHeight;
+      const lineas = lineasSello(mo);
+      const fpx = Math.max(13, Math.round(w * 0.024));
+      const lh = Math.round(fpx * 1.7);
+      const pad = Math.round(fpx * 1.2);
+      const banda = pad * 2 + lh * Math.max(1, lineas.length);
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h + banda;
+      const x = c.getContext('2d');
+      x.drawImage(img, 0, 0);
+      if(mo.media && mo.media.croquis) dibujarTrazos(x, mo.media.croquis.trazos, w, h);
+      x.fillStyle = '#16170f';
+      x.fillRect(0, h, w, banda);
+      x.textBaseline = 'middle';
+      x.font = '500 ' + fpx + 'px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+      x.fillStyle = '#d8d6c4';
+      lineas.forEach((l, i) => x.fillText(l, pad, h + pad + lh * i + lh / 2));
+      x.fillStyle = '#8fa676';
+      const marca = 'CUADERNX';
+      x.fillText(marca, w - pad - x.measureText(marca).width, h + pad + lh / 2);
+      const base = nombreArchivo(fechaDe(mo)).replace(/\.json$/, '');
+      c.toBlob((blob) => {
+        if(blob) bajarBlob(blob, base + '_sello.jpg');
+      }, 'image/jpeg', 0.9);
+    };
+    img.src = f.dataURL;
+  });
 
-    const visibles = filtroTag ? items.filter((it) => it.etiquetas.indexOf(filtroTag) !== -1) : items;
-    if(!visibles.length){
-      lista.innerHTML = '<div class="vacio">sin momentos con esa etiqueta</div>';
-      return;
-    }
-    const grupos = agruparPorJornada(visibles);
-    lista.innerHTML = grupos.map((g) =>
-      '<div class="jornada-h">' + g.jornada + '</div>' +
-      g.items.map((it) => {
-        const d = new Date(it.creado);
-        const cuando = isNaN(d) ? String(it.creado) : d.toLocaleTimeString('es', {
-          hour: '2-digit', minute: '2-digit'
-        });
-        return '<div class="item" data-id="' + it.id + '">' +
-          '<div><div class="cuando">' + cuando + '</div>' +
-          '<div class="que">' + (it.tiene.join(' · ') || 'solo metadatos') + '</div></div>' +
-          '<div class="peso">' + tamanoLegible(it.bytes) + '</div></div>';
-      }).join('')
-    ).join('');
-    lista.querySelectorAll('.item').forEach((el) => {
-      el.addEventListener('click', async () => {
-        const mo = await leerDeDB(+el.dataset.id);
-        if(!mo){ pintarLista(); return; }
-        mo._id = +el.dataset.id;
-        mostrarResultado(mo);
-      });
+  // mapa OSM/Carto con pin
+  const MAPA_Z = 16, TESELA_PX = 512, MAPA_W = 1200, MAPA_H = 900;
+  function urlTesela(x, y, z){
+    const sub = 'abcd'[(x + y) % 4];
+    return 'https://' + sub + '.basemaps.cartocdn.com/rastertiles/voyager/' + z + '/' + x + '/' + y + '@2x.png';
+  }
+  function cargarImg(url){
+    return new Promise((resolve) => {
+      const im = new Image();
+      im.crossOrigin = 'anonymous';
+      im.onload = () => resolve(im);
+      im.onerror = () => resolve(null);
+      im.src = url;
     });
   }
-  $('filtro-tag').addEventListener('change', () => { filtroTag = $('filtro-tag').value; pintarLista(); });
+  async function generarMapa(mo){
+    const p = mo.posicion;
+    const t = teselaDe(p.lat, p.lon, MAPA_Z);
+    const gx = t.x * TESELA_PX, gy = t.y * TESELA_PX;
+    const x0 = gx - MAPA_W / 2, y0 = gy - MAPA_H / 2;
+    const tx0 = Math.floor(x0 / TESELA_PX), tx1 = Math.floor((x0 + MAPA_W) / TESELA_PX);
+    const ty0 = Math.floor(y0 / TESELA_PX), ty1 = Math.floor((y0 + MAPA_H) / TESELA_PX);
+    const n = Math.pow(2, MAPA_Z);
+    const cargas = [];
+    for(let ty = ty0; ty <= ty1; ty++){
+      for(let tx = tx0; tx <= tx1; tx++){
+        const txm = ((tx % n) + n) % n;
+        cargas.push(cargarImg(urlTesela(txm, ty, MAPA_Z)).then((im) => ({ im, tx, ty })));
+      }
+    }
+    const teselas = await Promise.all(cargas);
+    const banda = 26;
+    const c = document.createElement('canvas');
+    c.width = MAPA_W; c.height = MAPA_H + banda;
+    const x = c.getContext('2d');
+    x.fillStyle = '#dfe3e0'; x.fillRect(0, 0, MAPA_W, MAPA_H);
+    for(const s of teselas){
+      if(s.im) x.drawImage(s.im, s.tx * TESELA_PX - x0, s.ty * TESELA_PX - y0, TESELA_PX, TESELA_PX);
+    }
+    const px = MAPA_W / 2, py = MAPA_H / 2;
+    x.strokeStyle = '#16170f'; x.lineWidth = 3;
+    x.beginPath(); x.moveTo(px, py); x.lineTo(px, py - 26); x.stroke();
+    x.fillStyle = '#8fa676';
+    x.beginPath(); x.arc(px, py - 32, 9, 0, Math.PI * 2); x.fill();
+    x.lineWidth = 2; x.beginPath(); x.arc(px, py - 32, 9, 0, Math.PI * 2); x.stroke();
+    x.fillStyle = '#16170f';
+    x.beginPath(); x.arc(px, py, 3, 0, Math.PI * 2); x.fill();
+    x.fillStyle = '#16170f'; x.fillRect(0, MAPA_H, MAPA_W, banda);
+    x.font = '500 12px ui-monospace, Menlo, Consolas, monospace';
+    x.textBaseline = 'middle';
+    x.fillStyle = '#d8d6c4';
+    x.fillText(p.lat.toFixed(5) + ', ' + p.lon.toFixed(5) + ' · z' + MAPA_Z, 10, MAPA_H + banda / 2);
+    const attr = '© OpenStreetMap contributors © CARTO';
+    x.fillStyle = '#8a8c78';
+    x.fillText(attr, MAPA_W - 10 - x.measureText(attr).width, MAPA_H + banda / 2);
+    return c;
+  }
+  $('h-mapa').addEventListener('click', async () => {
+    if(!momento || !momento.posicion) return;
+    $('h-mapa').textContent = 'cargando teselas…';
+    try{
+      const c = await generarMapa(momento);
+      const base = nombreArchivo(fechaDe(momento)).replace(/\.json$/, '');
+      c.toBlob((blob) => {
+        if(blob) bajarBlob(blob, base + '_mapa.jpg');
+        $('h-mapa').textContent = 'guardar mapa';
+        cerrarHoja();
+      }, 'image/jpeg', 0.9);
+    }catch(err){
+      $('h-mapa').textContent = 'mapa falló: ' + (err && err.name || 'error');
+    }
+  });
 
-  // ---------- visor: abrir JSON externo ----------
+  // ---------- herramientas: importar, respaldo, cuaderno MD ----------
   function abrirJSONExterno(file){
     if(!file) return;
     const fr = new FileReader();
     fr.onload = async () => {
       try{
         let obj = JSON.parse(fr.result);
-        // respaldo cifrado: pedir frase y descifrar
         if(obj.formato === 'cuadernx-respaldo-cifrado/1'){
           const frase = prompt('Frase de paso del respaldo:');
           if(frase === null) return;
@@ -1615,7 +1689,6 @@ async function descifrarRespaldo(obj, frase) {
             return;
           }
         }
-        // respaldo completo: restaurar todos los momentos a memoria corta
         if(obj.formato === 'cuadernx-respaldo/1' && Array.isArray(obj.momentos)){
           let n = 0;
           for(const mo of obj.momentos){
@@ -1625,12 +1698,11 @@ async function descifrarRespaldo(obj, frase) {
           pintarLista();
           return;
         }
-        // momento individual: cuadernx/1 o captura/1 (formato previo, compatible)
         if(obj.formato !== 'cuadernx/1' && obj.formato !== 'captura/1'){
           $('drop-json').textContent = 'ese JSON no es de cuadernx';
           return;
         }
-        mostrarResultado(obj);
+        mostrarFicha(obj);
       }catch(err){
         $('drop-json').textContent = 'no se pudo leer: JSON inválido';
       }
@@ -1647,6 +1719,46 @@ async function descifrarRespaldo(obj, frase) {
     e.preventDefault(); $('drop-json').classList.remove('hot');
     if(ev === 'drop') abrirJSONExterno(e.dataTransfer.files[0]);
   }));
+
+  $('exportar-todo').addEventListener('click', async () => {
+    let items;
+    try{ items = await listarDB(); }
+    catch(err){ $('exportar-todo').textContent = 'memoria no disponible'; return; }
+    if(!items.length){ $('exportar-todo').textContent = 'no hay nada que exportar'; return; }
+    const momentos = [];
+    for(const it of items){ const mo = await leerDeDB(it.id); if(mo) momentos.push(mo); }
+    const respaldo = { formato: 'cuadernx-respaldo/1', exportado: new Date().toISOString(), momentos };
+    const nombre = nombreArchivo(new Date()).replace(/^cuadernx_/, 'cuadernx_respaldo_');
+    const frase = prompt('Frase de paso para cifrar el respaldo\n(deja vacío para exportar sin cifrar):');
+    if(frase === null) return;
+    if(frase){
+      try{
+        const cif = await cifrarRespaldo(JSON.stringify(respaldo), frase);
+        compartirOBajar(new Blob([JSON.stringify(cif)], { type: 'application/json' }), nombre);
+        return;
+      }catch(err){
+        $('exportar-todo').textContent = 'cifrado falló: ' + (err && err.name || 'error');
+        return;
+      }
+    }
+    compartirOBajar(new Blob([JSON.stringify(respaldo)], { type: 'application/json' }), nombre);
+  });
+  $('cuaderno-md').addEventListener('click', async () => {
+    let items;
+    try{ items = await listarDB(); }
+    catch(err){ $('cuaderno-md').textContent = 'memoria no disponible'; return; }
+    if(!items.length){ $('cuaderno-md').textContent = 'no hay momentos'; return; }
+    const momentos = [];
+    for(const it of items){ const mo = await leerDeDB(it.id); if(mo) momentos.push(mo); }
+    momentos.sort((a, b) => String(a.creado).localeCompare(String(b.creado)));
+    const nombre = nombreArchivo(new Date()).replace(/^cuadernx_/, 'cuadernx_cuaderno_').replace(/\.json$/, '.md');
+    compartirOBajar(new Blob([mdDeCuaderno(momentos)], { type: 'text/markdown' }), nombre);
+  });
+
+  // ---------- arranque ----------
+  volcarPrefsAUI();
+  verVista(PREFS.pestana === 'cuaderno' ? 'cuaderno' : 'campo');
+  if(PREFS.pestana === 'cuaderno') pintarLista();
 })();
 </script>
 </body>
