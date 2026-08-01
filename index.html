@@ -1275,17 +1275,83 @@ function etiquetasRecientes(items, max) {
     PREFS.driveFolderId = cj.id; guardarPrefs();
     return cj.id;
   }
-  async function driveSubir(nombre, textoJSON){
-    const token = await driveGetToken(false);
-    const folderId = await driveCarpeta(token);
-    const metadata = { name: nombre, parents: [folderId], mimeType: 'application/json' };
+  // encuentra o crea una subcarpeta por nombre bajo parentId (cachea por sesión)
+  async function driveSubcarpeta(token, parentId, nombre, cache){
+    const clave = parentId + '/' + nombre;
+    if(cache && cache.has(clave)) return cache.get(clave);
+    const q = "mimeType='application/vnd.google-apps.folder' and name='" + nombre.replace(/'/g, "\\'") +
+      "' and '" + parentId + "' in parents and trashed=false";
+    const r = await fetch('https://www.googleapis.com/drive/v3/files?spaces=drive&fields=files(id,name)&q=' +
+      encodeURIComponent(q), { headers: { Authorization: 'Bearer ' + token } });
+    let id = null;
+    if(r.ok){ const j = await r.json(); if(j.files && j.files.length) id = j.files[0].id; }
+    if(!id){
+      const cr = await fetch('https://www.googleapis.com/drive/v3/files?fields=id', {
+        method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: nombre, mimeType: 'application/vnd.google-apps.folder', parents: [parentId] }) });
+      if(!cr.ok) throw new Error('carpeta ' + cr.status);
+      id = (await cr.json()).id;
+    }
+    if(cache) cache.set(clave, id);
+    return id;
+  }
+  async function driveSubirBlob(token, folderId, nombre, blob){
+    const metadata = { name: nombre, parents: [folderId] };
     const form = new FormData();
     form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-    form.append('file', new Blob([textoJSON], { type: 'application/json' }));
-    const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name', {
+    form.append('file', blob);
+    const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
       method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: form });
-    if(!r.ok) throw new Error('Drive respondió ' + r.status);
+    if(!r.ok) throw new Error('subida ' + r.status);
     return r.json();
+  }
+  function canvasABlob(c, tipo, cal){ return new Promise((res) => c.toBlob((b) => res(b), tipo || 'image/jpeg', cal || 0.9)); }
+  async function bakeMapaBlob(mapa){
+    try{ return await canvasABlob(await mapaGuardadoACanvas(mapa)); }catch(_){ return null; }
+  }
+  // foto con el croquis horneado encima (o lienzo si no hay foto)
+  function bakeCroquisBlob(media){
+    return new Promise((resolve) => {
+      const trazos = (media.croquis && media.croquis.trazos) || [];
+      const pintar = (w, h, fondo) => {
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        const x = c.getContext('2d');
+        if(fondo) x.drawImage(fondo, 0, 0); else { x.fillStyle = '#ece6d4'; x.fillRect(0, 0, w, h); }
+        dibujarTrazos(x, trazos, w, h);
+        c.toBlob((b) => resolve(b), 'image/jpeg', 0.85);
+      };
+      if(media.foto){
+        const im = new Image();
+        im.onload = () => pintar(im.naturalWidth, im.naturalHeight, im);
+        im.onerror = () => resolve(null);
+        im.src = media.foto.dataURL;
+      } else pintar(1600, 1200, null);
+    });
+  }
+  function horaCarpeta(iso, tz){
+    const d = new Date(iso); if(isNaN(d)) return '000000';
+    try{
+      return new Intl.DateTimeFormat('sv', { timeZone: tz || undefined,
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).format(d).replace(/[^0-9]/g, '');
+    }catch(_){ return '000000'; }
+  }
+  // sube un momento a CuadernX/<día>/<hora_etiqueta>/ con datos.json + media suelta
+  async function driveSubirMomento(mo, token, cache){
+    token = token || await driveGetToken(false);
+    const raiz = await driveCarpeta(token);
+    const tz = mo.meta && mo.meta.zonaHoraria;
+    const jornada = jornadaDe(mo.creado, tz) || 'sin-fecha';
+    const dia = await driveSubcarpeta(token, raiz, jornada, cache);
+    const etq = (mo.etiquetas && mo.etiquetas.length) ? '_' + mo.etiquetas[0].replace(/[^\w\-]/g, '') : '';
+    const carp = await driveSubcarpeta(token, dia, horaCarpeta(mo.creado, tz) + etq, cache);
+    const media = mo.media || {};
+    await driveSubirBlob(token, carp, 'datos.json', new Blob([JSON.stringify(mo, null, 2)], { type: 'application/json' }));
+    if(media.foto) await driveSubirBlob(token, carp, 'foto.' + extensionDeMime(media.foto.formato), blobDeDataURL(media.foto.dataURL));
+    if(media.croquis){ const b = await bakeCroquisBlob(media); if(b) await driveSubirBlob(token, carp, 'foto-croquis.jpg', b); }
+    if(media.video) await driveSubirBlob(token, carp, 'video.' + extensionDeMime(media.video.formato), blobDeDataURL(media.video.dataURL));
+    if(media.audio) await driveSubirBlob(token, carp, 'audio.' + extensionDeMime(media.audio.formato), blobDeDataURL(media.audio.dataURL));
+    if(media.notaVoz) await driveSubirBlob(token, carp, 'voz.' + extensionDeMime(media.notaVoz.formato), blobDeDataURL(media.notaVoz.dataURL));
+    if(media.mapa){ const b = await bakeMapaBlob(media.mapa); if(b) await driveSubirBlob(token, carp, 'mapa.jpg', b); }
   }
   // índice local de qué momentos ya se subieron (por id de IndexedDB)
   function driveSubidos(){
@@ -1300,7 +1366,7 @@ function etiquetasRecientes(items, max) {
   async function autoSubirDrive(mo, id){
     if(!PREFS.driveAuto || !driveCID() || !driveLibListo()) return;
     try{
-      await driveSubir(nombreArchivo(fechaDe(mo)), jsonDe(mo));
+      await driveSubirMomento(mo);
       if(id != null) driveMarcar(id);
     }catch(_){ /* silencioso: queda como pendiente para 'subir pendientes' */ }
   }
@@ -1313,11 +1379,14 @@ function etiquetasRecientes(items, max) {
     const pend = items.filter((it) => !subidos.has(it.id));
     if(!pend.length){ if(est) est.textContent = 'conectado ✓ · todo al día'; return; }
     let ok = 0;
+    let token;
+    try{ token = await driveGetToken(false); }catch(err){ if(est) est.textContent = 'error: ' + (err && err.message || err); return; }
+    const cache = new Map();
     for(const it of pend){
       try{
         const mo = await leerDeDB(it.id);
         if(!mo) continue;
-        await driveSubir(nombreArchivo(fechaDe(mo)), JSON.stringify(mo, null, 2));
+        await driveSubirMomento(mo, token, cache);
         driveMarcar(it.id); ok++;
         if(est) est.textContent = 'subiendo ' + ok + '/' + pend.length + '…';
       }catch(err){ if(est) est.textContent = 'conectado ✓ · faltan ' + (pend.length - ok) + ' (toca conectar para reintentar)'; return; }
