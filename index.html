@@ -269,14 +269,10 @@
           <input type="file" id="file-json" accept="application/json,.json" class="hide">
           <button class="b" id="exportar-todo">exportar todo · respaldo</button>
           <button class="b" id="cuaderno-md">cuaderno MD</button>
-          <div class="sec-t" style="margin-top:14px">Google Drive · sincronizar a tu carpeta</div>
-          <input type="text" id="drive-cid" placeholder="ID de cliente OAuth de Google" autocomplete="off" autocapitalize="off" spellcheck="false">
-          <label class="sw" style="margin-top:6px"><span>subir al capturar<small>cada momento va solo a tu Drive</small></span>
+          <div class="sec-t" style="margin-top:14px">Google Drive · carpeta CuadernX</div>
+          <label class="sw" style="margin-top:2px"><span>subir al capturar<small>cada momento va solo a tu Drive</small></span>
             <input type="checkbox" id="t-drive-auto"><span class="tog"></span></label>
-          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px">
-            <button class="b" id="drive-conectar">conectar Drive</button>
-            <button class="b" id="drive-subir-todo">subir pendientes</button>
-          </div>
+          <button class="b" id="drive-conectar" style="margin-top:8px">conectar Drive</button>
           <div id="drive-estado" style="color:var(--ink-dim); font-size:11px; margin-top:8px; min-height:15px"></div>
         </div>
       </details>
@@ -760,7 +756,6 @@ function etiquetasRecientes(items, max) {
     $('camara').value = PREFS.camara;
     $('dur-fila').classList.toggle('hide', PREFS.clip === 'ninguno');
     $('ajustes').classList.toggle('on', PREFS.ajustes);
-    $('drive-cid').value = PREFS.driveClientId || DRIVE_CLIENT_ID;
     $('t-drive-auto').checked = !!PREFS.driveAuto;
   }
   function leerPrefsDeUI(){
@@ -1309,37 +1304,14 @@ function etiquetasRecientes(items, max) {
       if(id != null) driveMarcar(id);
     }catch(_){ /* silencioso: queda como pendiente para 'subir pendientes' */ }
   }
-  $('drive-cid').addEventListener('change', () => {
-    const nuevo = $('drive-cid').value.trim();
-    if(nuevo !== PREFS.driveClientId){
-      PREFS.driveClientId = nuevo;
-      PREFS.driveFolderId = ''; driveToken = null; driveTokenClient = null; // reinicia si cambia de cuenta/proyecto
-    }
-    guardarPrefs();
-  });
   $('t-drive-auto').addEventListener('change', () => { PREFS.driveAuto = $('t-drive-auto').checked; guardarPrefs(); });
-  $('drive-conectar').addEventListener('click', async () => {
-    const est = $('drive-estado');
-    if(!driveCID()){ est.textContent = 'falta el ID de cliente'; return; }
-    if(!driveLibListo()){ est.textContent = 'la librería de Google no cargó (¿sin conexión?)'; return; }
-    est.textContent = 'conectando…';
-    try{
-      await driveGetToken(true);
-      const token = await driveGetToken(false);
-      await driveCarpeta(token);
-      est.textContent = 'conectado ✓ · carpeta "' + (PREFS.driveFolderNombre || 'CuadernX') + '"';
-    }catch(err){ est.textContent = 'error: ' + (err && err.message || err); }
-  });
-  $('drive-subir-todo').addEventListener('click', async () => {
-    const est = $('drive-estado');
-    if(!driveCID()){ est.textContent = 'falta el ID de cliente'; return; }
-    if(!driveLibListo()){ est.textContent = 'la librería de Google no cargó'; return; }
+  // sube en segundo plano todos los momentos que aún no estén en Drive
+  async function subirPendientes(est){
     let items;
-    try{ items = await listarDB(); }catch(_){ est.textContent = 'memoria no disponible'; return; }
+    try{ items = await listarDB(); }catch(_){ if(est) est.textContent = 'memoria no disponible'; return; }
     const subidos = driveSubidos();
     const pend = items.filter((it) => !subidos.has(it.id));
-    if(!pend.length){ est.textContent = 'todo al día ✓'; return; }
-    est.textContent = 'subiendo 0/' + pend.length + '…';
+    if(!pend.length){ if(est) est.textContent = 'conectado ✓ · todo al día'; return; }
     let ok = 0;
     for(const it of pend){
       try{
@@ -1347,11 +1319,39 @@ function etiquetasRecientes(items, max) {
         if(!mo) continue;
         await driveSubir(nombreArchivo(fechaDe(mo)), JSON.stringify(mo, null, 2));
         driveMarcar(it.id); ok++;
-        est.textContent = 'subiendo ' + ok + '/' + pend.length + '…';
-      }catch(err){ est.textContent = 'falló en uno (' + (err && err.message || 'error') + '); sigue pendiente'; return; }
+        if(est) est.textContent = 'subiendo ' + ok + '/' + pend.length + '…';
+      }catch(err){ if(est) est.textContent = 'conectado ✓ · faltan ' + (pend.length - ok) + ' (toca conectar para reintentar)'; return; }
     }
-    est.textContent = 'subidos ' + ok + '/' + pend.length + ' ✓';
+    if(est) est.textContent = 'conectado ✓ · ' + ok + ' subido' + (ok === 1 ? '' : 's');
+  }
+  // un solo botón: pide permiso (solo la 1ª vez), activa la subida automática y sincroniza lo pendiente
+  $('drive-conectar').addEventListener('click', async () => {
+    const est = $('drive-estado');
+    if(!driveLibListo()){ est.textContent = 'la librería de Google no cargó (¿sin conexión?)'; return; }
+    est.textContent = 'conectando…';
+    try{
+      const token = await driveGetToken(false); // muestra el consentimiento solo si aún no lo diste
+      await driveCarpeta(token);
+      PREFS.driveAuto = true; guardarPrefs(); $('t-drive-auto').checked = true;
+      est.textContent = 'conectado ✓';
+      await subirPendientes(est);
+    }catch(err){ est.textContent = 'error: ' + (err && err.message || err); }
   });
+  // al abrir la app, si ya está activada, reconecta e sincroniza en silencio (sin molestar)
+  function driveCuandoListo(cb, intentos){
+    intentos = (intentos == null) ? 20 : intentos;
+    if(driveLibListo()) return cb();
+    if(intentos <= 0) return;
+    setTimeout(() => driveCuandoListo(cb, intentos - 1), 300);
+  }
+  async function driveAutoSyncInicio(){
+    if(!PREFS.driveAuto) return;
+    try{
+      await driveGetToken(false); // silencioso; si necesita consentimiento, lanza y no hacemos nada
+      await subirPendientes($('drive-estado'));
+    }catch(_){ /* hará falta tocar "conectar Drive" una vez */ }
+  }
+  if(PREFS.driveAuto) driveCuandoListo(driveAutoSyncInicio);
 
   // ---------- cuaderno: lista por jornadas ----------
   let filtroTag = '', soloPendientes = false;
