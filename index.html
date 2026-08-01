@@ -760,7 +760,7 @@ function etiquetasRecientes(items, max) {
     $('camara').value = PREFS.camara;
     $('dur-fila').classList.toggle('hide', PREFS.clip === 'ninguno');
     $('ajustes').classList.toggle('on', PREFS.ajustes);
-    $('drive-cid').value = PREFS.driveClientId || '';
+    $('drive-cid').value = PREFS.driveClientId || DRIVE_CLIENT_ID;
     $('t-drive-auto').checked = !!PREFS.driveAuto;
   }
   function leerPrefsDeUI(){
@@ -1226,15 +1226,20 @@ function etiquetasRecientes(items, max) {
   // ---------- Google Drive (opcional: sincronización a tu carpeta) ----------
   // Permiso mínimo drive.file: la app solo ve/edita los archivos que ella misma crea.
   const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+  // ID de cliente OAuth por defecto (no es secreto; lo protege el "origen autorizado" en Google Cloud).
+  // Se puede sobreescribir desde ajustes con otro ID.
+  const DRIVE_CLIENT_ID = '667655007078-t1m5lgueclvcvv0ih9vic9gpnj4celal.apps.googleusercontent.com';
+  function driveCID(){ return (PREFS.driveClientId && PREFS.driveClientId.trim()) || DRIVE_CLIENT_ID; }
   let driveTokenClient = null, driveToken = null, driveTokenExp = 0;
   function driveLibListo(){ return !!(window.google && google.accounts && google.accounts.oauth2); }
   function driveInitClient(){
-    if(!PREFS.driveClientId || !driveLibListo()) return null;
-    if(driveTokenClient && driveTokenClient._cid === PREFS.driveClientId) return driveTokenClient;
+    const cid = driveCID();
+    if(!cid || !driveLibListo()) return null;
+    if(driveTokenClient && driveTokenClient._cid === cid) return driveTokenClient;
     driveTokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: PREFS.driveClientId, scope: DRIVE_SCOPE, callback: () => {},
+      client_id: cid, scope: DRIVE_SCOPE, callback: () => {},
     });
-    driveTokenClient._cid = PREFS.driveClientId;
+    driveTokenClient._cid = cid;
     return driveTokenClient;
   }
   function driveGetToken(interactivo){
@@ -1298,7 +1303,7 @@ function etiquetasRecientes(items, max) {
   }
   // sube un momento recién guardado en segundo plano (no bloquea la UI)
   async function autoSubirDrive(mo, id){
-    if(!PREFS.driveAuto || !PREFS.driveClientId || !driveLibListo()) return;
+    if(!PREFS.driveAuto || !driveCID() || !driveLibListo()) return;
     try{
       await driveSubir(nombreArchivo(fechaDe(mo)), jsonDe(mo));
       if(id != null) driveMarcar(id);
@@ -1315,7 +1320,7 @@ function etiquetasRecientes(items, max) {
   $('t-drive-auto').addEventListener('change', () => { PREFS.driveAuto = $('t-drive-auto').checked; guardarPrefs(); });
   $('drive-conectar').addEventListener('click', async () => {
     const est = $('drive-estado');
-    if(!PREFS.driveClientId){ est.textContent = 'pega primero el ID de cliente'; return; }
+    if(!driveCID()){ est.textContent = 'falta el ID de cliente'; return; }
     if(!driveLibListo()){ est.textContent = 'la librería de Google no cargó (¿sin conexión?)'; return; }
     est.textContent = 'conectando…';
     try{
@@ -1327,7 +1332,7 @@ function etiquetasRecientes(items, max) {
   });
   $('drive-subir-todo').addEventListener('click', async () => {
     const est = $('drive-estado');
-    if(!PREFS.driveClientId){ est.textContent = 'falta el ID de cliente'; return; }
+    if(!driveCID()){ est.textContent = 'falta el ID de cliente'; return; }
     if(!driveLibListo()){ est.textContent = 'la librería de Google no cargó'; return; }
     let items;
     try{ items = await listarDB(); }catch(_){ est.textContent = 'memoria no disponible'; return; }
